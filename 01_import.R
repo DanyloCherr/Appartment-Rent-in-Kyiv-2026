@@ -1,3 +1,8 @@
+library(rio)
+library(lubridate)
+library(dplyr)
+
+
 get_csv_name <- function(filename){
   dir <- paste0("C:/Users/danil/R projects/Appartment Rent in Kyiv 2026/Data/", filename, ".csv")
   return(dir)
@@ -7,13 +12,17 @@ get_csv_name <- function(filename){
 importf <- function(filename, date_format){
   table <- import(get_csv_name(filename))
   
-  no_day_format <- grepl("^\\d{4}-\\d{1,2}$", table[1, 1])
+  # При виконанні source() функція перший елемент може повернутися як фактор (категорія), 
+  # тому для надійності перетворимо його в текстовий символ.
+  first_val <- as.character(table[1, 1])
+  
+  no_day_format <- grepl("^\\d{4}-\\d{1,2}$", first_val)
   if(no_day_format){ # якщо дата не містить дня тижня, то дописуємо перше число
     table[, 1] <- paste0(table[, 1], "-01")
   }
   
   
-  table[, 1] <- as.Date(table[, 1], format = date_format)
+  table[, 1] <- as.Date(as.character(table[, 1]), format = date_format)
   table[, -1] <- sapply(table[, -1], function(x){
     x <- gsub(",", ".", x)
     x <- gsub("[^0-9.]", "", x)
@@ -37,11 +46,17 @@ rownames(EUR) <- NULL
 
 # ---Курс долара, кімнатність---
 MULTIROOM <- importf("Price, dollar", "%d.%m.%y")
-colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
+# colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
+# На жаль, "Курс долара" містить більше сотні пропусків, тому завантажимо дані від НБУ окремо
+MULTIROOM <- MULTIROOM[, -5]
+colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
 
 
 # ---Курс долара---
-USD <- MULTIROOM[, c(1, 5)]
+USD <- importf("USD", "%d.%m.%Y")
+USD[USD$`Кількість одиниць` == 100, 7] <- round(USD[USD$`Кількість одиниць` == 100, 7] / 100, 2)
+USD <- USD[, c(1, 7)]
+colnames(USD) <- c("Дата", "Долар")
 
 
 # ---1-кімнатні квартири---
@@ -70,8 +85,8 @@ colnames(HH_DEBT_BURDEN)[2] <- "БоргНавантаж"
 
 
 # ---Введення в експлуатацію житла---
-HOUSING_COMPLITIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
-colnames(HOUSING_COMPLITIONS)[2] <- "ВведЖитла"
+HOUSING_COMPLETIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
+colnames(HOUSING_COMPLETIONS)[2] <- "ВведЖитла"
 
 
 # ---Індекс геополітичних ризиків---
@@ -82,11 +97,6 @@ colnames(GPR_INDEX)[2] <- "ІГР"
 # ---Індекс фінансового стресу---
 FS_INDEX <- importf("Індекс фінансового стресу", "%d.%m.%Y")
 colnames(FS_INDEX)[2] <- "ІФС"
-
-
-# ---Індекс цін на житло на вторинному ринку---
-SECOND_HAND_HPRICE_INDEX <- importf("Індекс цін на житло на вторинному ринку", "%d.%m.%Y")
-colnames(SECOND_HAND_HPRICE_INDEX) <- c("Дата", "ІЦЖВ")
 
 
 # ---Індекс цін на житло на вторинному ринку---
@@ -142,10 +152,18 @@ FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
 
 
 # ---Споживчі настрої домогосподарств---
-CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%d.%m.%Y")
+CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
 colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
 
 
 # ---Чисельність населення---
 POPULATION <- importf("Чисельність населення", "%d.%m.%Y")
 colnames(POPULATION) <- c("Дата", "ЧисНасел") 
+# Хоч спостереження чисельності населення і записані як щоденні, проте їх значення 
+# є однаковими для всіх днів місяця. Тобто дані оцінюються щомісячно.
+POPULATION <- POPULATION %>%
+  mutate(month = format(Дата, "%Y-%m")) %>%
+  group_by(month) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(-month)
