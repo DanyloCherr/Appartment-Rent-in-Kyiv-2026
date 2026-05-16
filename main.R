@@ -1,11 +1,19 @@
+library(here)
 rm(list = ls())
 
+
 get_R_name <- function(filename){
-  dir <- paste0("C:/Users/danil/R projects/Appartment Rent in Kyiv 2026/", filename, ".R")
+  dir <- paste0(here(), "/", filename, ".R")
+  print(dir)
   return(dir)
 }
 
-source(get_R_name("01_import"), echo = TRUE)
-source(get_R_name("02_data_validation"), echo = TRUE)
-source(get_R_name("03_data_vizualization"), echo = TRUE)
+is_markdown = FALSE # Для звіту прибираємо зайве виведення
+
+source(get_R_name("01_import"), echo = !(is_markdown))
+source(get_R_name("02_data_validation"), echo = !(is_markdown))
+source(get_R_name("03_data_vizualization"), echo = !(is_markdown))
+source(get_R_name("04_data1_regression"), echo = !(is_markdown))
+source(get_R_name("04_K1_data1_regression"), echo = !(is_markdown))
+
 

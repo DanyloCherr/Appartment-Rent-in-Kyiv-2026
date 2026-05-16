@@ -4,7 +4,7 @@ library(dplyr)
 
 
 get_csv_name <- function(filename){
-  dir <- paste0("C:/Users/danil/R projects/Appartment Rent in Kyiv 2026/Data/", filename, ".csv")
+  dir <- paste0(here(),"/Data", "/", filename, ".csv")
   return(dir)
 }
 
@@ -117,6 +117,7 @@ colnames(CP_INDEX) <- c("Дата", "ІЦБ")
 # ---Обсяг чистих гривневих кредитів---
 NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів", "%d.%m.%Y")
 colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
+NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
 
 
 # ---Оцінка доходів населення---
@@ -138,6 +139,7 @@ HH_DEPOSITS_ANNUAL_GROWTH <- importf("Річні темпи зміни кошт�
 colnames(HH_DEPOSITS_ANNUAL_GROWTH) <- c("Дата", "ТемпЗмінКошт")
 HH_DEPOSITS_ANNUAL_GROWTH <- HH_DEPOSITS_ANNUAL_GROWTH[-1, c(1,2)]
 rownames(HH_DEPOSITS_ANNUAL_GROWTH) <- NULL
+HH_DEPOSITS_ANNUAL_GROWTH[[1]] <- floor_date(HH_DEPOSITS_ANNUAL_GROWTH[[1]], "month")
 
 
 # ---Розмір компенсації від держави---
@@ -154,16 +156,20 @@ FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
 # ---Споживчі настрої домогосподарств---
 CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
 colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
-
+CONSUMER_CONFIDENCE[[1]] <- floor_date(CONSUMER_CONFIDENCE[[1]], "month")
 
 # ---Чисельність населення---
 POPULATION <- importf("Чисельність населення", "%d.%m.%Y")
 colnames(POPULATION) <- c("Дата", "ЧисНасел") 
 # Хоч спостереження чисельності населення і записані як щоденні, проте їх значення 
 # є однаковими для всіх днів місяця. Тобто дані оцінюються щомісячно.
-POPULATION <- POPULATION %>%
+POPULATION <- as.data.frame(
+  POPULATION %>%
   mutate(month = format(Дата, "%Y-%m")) %>%
   group_by(month) %>%
   slice(1) %>%
   ungroup() %>%
   select(-month)
+  )
+# Також екстраполюємо дані за останній тиждень листопада 2015 р. на весь місяць.
+POPULATION[1, 1] <- as.Date("2015-11-01", format = "%Y-%m-%d")

@@ -2,14 +2,16 @@ library(ggplot2)
 library(patchwork)
 
 
-combined_plots <- function(tables) {
+combined_plots <- function(tables, highlight_df = NULL) {
   for (table_name in names(tables)) {
     current_df <- tables[[table_name]]
     
-    p1 <- ggplot(current_df, aes(x = current_df[[1]], y = current_df[[2]])) +
+    x_col <- colnames(current_df)[1]
+    y_col <- colnames(current_df)[2]
+    p1 <- ggplot(current_df, aes(x = .data[[x_col]], y = .data[[y_col]])) +
       geom_path(color = "steelblue") + 
       labs(title = table_name,
-           x = "Дата",
+           x = "",
            y = colnames(current_df)[2]) +
       theme_minimal()
     
@@ -18,9 +20,18 @@ combined_plots <- function(tables) {
       p1 <- p1 + geom_point(color = "red", size = 1.25)
     }
     
+    if (!is.null(highlight_df)) {
+      highlight_dates <- highlight_df[[1]]  # перший стовпець — дати
+      highlight_data <- current_df[current_df[[x_col]] %in% highlight_dates, ]
+      
+      if (nrow(highlight_data) > 0) {
+        p1 <- p1 + geom_point(data = highlight_data, 
+                              aes(x = .data[[x_col]], y = .data[[y_col]]),
+                              color = "purple", size = 2, shape = 18)
+      }
+    }
     
-    
-    p2 <- ggplot(current_df, aes(y = current_df[[2]])) +
+    p2 <- ggplot(current_df, aes(y = .data[[y_col]])) +
       geom_boxplot(fill = "steelblue", alpha = 0.7, staplewidth = 0.5) +
       scale_y_continuous(position = "right") +
       theme_minimal() +
@@ -47,8 +58,15 @@ split_df_byDate <- function(df, date = "2022-02-01"){
   return(result)
 }
 
+
+### Дані за весь період із 2015 до 2025.
 cat("Всього факторів:", length(all_tables))
-combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
+
+# is_markdown - змінна, оголошена в main
+if(is_markdown){
+  combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
+}
+
 
 
 # =======ПОТЕНЦІЙНІ ПРОБЛЕМИ=======
@@ -68,15 +86,43 @@ for(table_name in names(all_tables)){
 }
 
 
-# =====data1=====
+### data1 (перший період)
 cat("Змінні, що залишились в data1:", "\n", paste(names(data1), collapse = "\n"), 
     "\n", "Всього:", length(data1))
+# Випало 6 змінних.
+
+if(is_markdown){
+  combined_plots(data1[names(data1) != "MULTIROOM"])
+}
 
 
-combined_plots(data1[names(data1) != "MULTIROOM"])
+# =====TRPROOM=====
+# Викиди на межі 2022 року?
+
+# =====GPR_INDEX=====
+# Викиди на межі 2022 року?
+
+# =====FS_INDEX=====
+# Початок виглядає підозріло.
+
+# =====POPULATION=====
+# Перші кілька спостережень виглядають як викиди. Можливо, в той час було
+# змінено методику підрахунку чисельності населення.
 
 
-# -------USD-------
+
+### data2 (другий період)
+cat("Змінні, що залишились в data2:", "\n", paste(names(data2), collapse = "\n"), 
+    "\n", "Всього:", length(data2))
+# Випало 2 змінні.
+
+
+if(is_markdown){
+  combined_plots(data2[names(data2) != "MULTIROOM"])
+}
+
+
+# =====USD=====
 # Із 2022-02-24 уряд зафіксував ціну долара на рівні 29.25;
 # із 2022-07-21 - 36.56 (до 2023-10-03 включно). 
 # Отже, в період із 2022-02-24 до 2023-09-03 змінна Долар не має варіації,
@@ -87,8 +133,3 @@ combined_plots(data1[names(data1) != "MULTIROOM"])
 # АБО
 # 2) Додати індикаторну змінну в модель: тоді модель знатиме, що в певний 
 # період долар був зафіксований.
-
-
-# -------POPULATION-------
-# Перші кілька спостережень виглядають як викиди. Можливо, в той час було
-# змінено методику підрахунку чисельності населення.
