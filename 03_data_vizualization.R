@@ -59,6 +59,27 @@ split_df_byDate <- function(df, date = "2022-02-01"){
 }
 
 
+get_split_periods <- function(all_tables, min_obs = 10, date = "2022-02-01"){ # Чи нормально взяти за мінімум 10?
+  data1 <- list()
+  data2 <- list()
+  
+  for(table_name in names(all_tables)){
+    split_data <- split_df_byDate(all_tables[[table_name]], date)
+    if(nrow(split_data$before) >= min_obs){ 
+      data1[[table_name]] <- split_data$before
+    }
+    if(nrow(split_data$after) >= min_obs){
+      data2[[table_name]] <- split_data$after
+    }
+  }
+  result <- list(
+    period1 = data1,
+    period2 = data2
+  )
+  return(result)
+}
+  
+
 ### Дані за весь період із 2015 до 2025.
 cat("Всього факторів:", length(all_tables))
 
@@ -68,23 +89,16 @@ if(is_markdown){
 }
 
 
-
 # =======ПОТЕНЦІЙНІ ПРОБЛЕМИ=======
 # Із графіків видно, що всі дані варто розділити: до лютого 2022 року та після.
 
-data1 <- list()
-data2 <- list()
-
-for(table_name in names(all_tables)){
-  split_data <- split_df_byDate(all_tables[[table_name]])
-  if(nrow(split_data$before) >= 10){ # Чи нормально взяти за мінімум 10?
-    data1[[table_name]] <- split_data$before
-  }
-  if(nrow(split_data$after) >= 10){
-    data2[[table_name]] <- split_data$after
-  }
+splt_data <- get_split_periods(all_tables, date = "2022-01-01") # UPD
+data1 <- splt_data$period1
+for(name in names(data1)){ # UPD
+  data1[[name]] <- data1[[name]][data1[[name]]$Дата >= "2016-01-01", ]
 }
 
+data2 <- splt_data$period2
 
 ### data1 (перший період)
 cat("Змінні, що залишились в data1:", "\n", paste(names(data1), collapse = "\n"), 
@@ -133,3 +147,4 @@ if(is_markdown){
 # АБО
 # 2) Додати індикаторну змінну в модель: тоді модель знатиме, що в певний 
 # період долар був зафіксований.
+

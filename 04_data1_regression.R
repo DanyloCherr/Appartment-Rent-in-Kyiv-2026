@@ -54,6 +54,7 @@ data1 <- sort_by_rows(data1)
 sapply(data1, nrow)
 
 
+
 # Таблиць із щоденними даними дуже мало, тому агрегуємо їх до щомісячних:
 # Ціни, USD, EUR, ІФС, агрегуємо перші 7 таблиць
 
@@ -77,18 +78,16 @@ sapply(data1, nrow)
 
 
 
-
 # ===== Таблиці предикторів =====
-predictors <- c(data1[1:3], data1[8:11]) # Спільні предиктори для всіх К
-print(names(predictors))
+predictors <- c("EUR", "USD", "FS_INDEX", "GPR_INDEX", 
+                "CP_INDEX", "POPULATION", "DOLLARIZATION_LEVEL") # Спільні предиктори для всіх К
 
-df_predictors75 <- predictors[[1]]
+df_predictors75 <- data1$EUR
 
-for(name in names(predictors[-1])){
-  df_predictors75 <- merge(df_predictors75, predictors[[name]], by = "Дата", all = TRUE)
+for(name in predictors[-1]){
+  df_predictors75 <- merge(df_predictors75, data1[[name]], by = "Дата", all = TRUE)
 }
 df_predictors75 <- na.omit(df_predictors75)
-
 
 df_predictors38 <- merge(df_predictors75, data1$NET_UAH_LOANS, by = "Дата", all = TRUE)
 df_predictors26 <- merge(df_predictors38, data1$CONSUMER_CONFIDENCE, by = "Дата", all = TRUE)
@@ -119,7 +118,6 @@ model_df_75 <- merge(df_predictors75, data1$MULTIROOM, by = "Дата", all = TR
 
 # ===== 38 спостережень =====
 model_df_38 <- merge(df_predictors38, data1$MULTIROOM, by = "Дата", all = TRUE)
-
 
 # ===== 26 спостережень =====
 model_df_26 <- merge(df_predictors26, data1$MULTIROOM, by = "Дата", all = TRUE)
