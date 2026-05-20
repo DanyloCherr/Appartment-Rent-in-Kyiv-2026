@@ -3,6 +3,8 @@ library(lmtest)
 library(MASS)
 library(ggplot2)
 library(sandwich)
+library(leaps)
+library(nlme)
 
 # Схема побудови моделі.
 # 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ.
@@ -22,6 +24,17 @@ unit_length_scale <- function(x){ # Передаємо один стовпець
   centered <- x - mean(x)
   result <- centered / sqrt(sum(centered^2))
   return(result)
+}
+
+
+compute_vifs <- function(model){
+  model_data <- model$model
+  colnames(model_data)[1] <- "Y"
+  
+  model_df_norm <- as.data.frame(lapply(model_data, unit_length_scale))
+  model_norm <- lm(Y ~ ., data = model_data)
+  
+  vif(model_norm)
 }
 
 
@@ -199,10 +212,12 @@ av_plots <- function(model){
 }
 
 
-time_series_residuals <- function(model){
+time_series_residuals <- function(model, normalized = FALSE){
+  res_type <- if(inherits(model, "gls") && normalized) "normalized" else "response"
+  
   res_df <- data.frame(
-    order = 1:length(residuals(model)),
-    residuals = residuals(model)
+    order = 1:length(residuals(model, type = res_type)),
+    residuals = residuals(model, type = res_type)
   )
   ggplot(res_df, aes(x = order, y = residuals)) +
     geom_line(color = "steelblue", alpha = 0.5) +
@@ -212,6 +227,62 @@ time_series_residuals <- function(model){
          x = "Порядок спостереження",
          y = "Залишки") +
     theme_minimal(base_size = 14)
+}
+
+
+plot_subsets <- function(subsets) {
+  scales <- c("r2", "adjr2", "bic", "Cp")
+  par(mfrow = c(2, 2))
+  
+  for (sc in scales) {
+    plot(subsets, scale = sc)
+    grid(nx = ncol(summary(subsets)$which), 
+         ny = nrow(summary(subsets)$which), 
+         col = "gray50", lty = "dotted")
+  }
+  
+  par(mfrow = c(1, 1))
+}
+
+
+best_models_summary <- function(all_subsets, top_n = 3) {
+  sm <- summary(all_subsets)
+  which_mat <- sm$which
+  adjr2 <- sm$adjr2
+  bic <- sm$bic
+  cp <- sm$cp
+  p <- apply(which_mat, 1, sum)
+  
+  top_adjr2 <- order(adjr2, decreasing = TRUE)[1:top_n]
+  
+  top_bic <- order(bic)[1:top_n]
+  
+  cp_dist <- abs(cp - p)
+  top_cp <- order(cp_dist)[1:top_n]
+  
+  format_model <- function(idx) {
+    vars <- names(which(which_mat[idx, -1]))
+    paste(vars, collapse = " + ")
+  }
+  
+  cat("========== Adj R² ==========\n")
+  for (i in 1:top_n) {
+    cat(sprintf("%d. %s  | Adj R² = %.4f (p = %d)\n", i, format_model(top_adjr2[i]), adjr2[top_adjr2[i]], p[top_adjr2[i]]))
+  }
+  cat("\n========== BIC ==========\n")
+  for (i in 1:top_n) {
+    cat(sprintf("%d. %s  | BIC = %.2f (p = %d)\n", i, format_model(top_bic[i]), bic[top_bic[i]], p[top_bic[i]]))
+  }
+  cat("\n========== Cp ==========\n")
+  for (i in 1:top_n) {
+    cat(sprintf("%d. %s  | Cp = %.2f (p = %d)\n", i, format_model(top_cp[i]), cp[top_cp[i]], p[top_cp[i]]))
+  }
+  
+  invisible(list(
+    top_adjr2 = top_adjr2,
+    top_bic = top_bic,
+    top_cp = top_cp
+  ))
 }
 
 
@@ -310,6 +381,12 @@ observe_transforms_y <- function(model){
   return(result)
 }
 
+
+gls_dwtest <- function(gls_model){
+  e <- residuals(gls_model, type = "normalized")
+  # type = "normalized" - витягти залишки після домноження рівняння на К^-1
+  dwtest(lm(e ~ 1))
+}
 
 
 # ----- 75 СПОСТЕРЕЖЕНЬ -----
@@ -592,7 +669,7 @@ influential_points <- model_log1_75_Sq$model[c(13, 33, 48, 72), ]
 influential_points
 
 
-# ==== 5.2.4) ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ ====
+# ==== 5.2.4) ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ, НОРМАЛЬНІСТЬ ====
 
 # ЛІНІЙНІСТЬ
 plot(model_log1_75_Sq, which = 1)
@@ -674,28 +751,191 @@ coeftest(model_log1_75_Sq, vcov = vcovHAC(model_log1_75_Sq))
 # Проте якщо за рівень значимості брати 5%, то значимість регресорів не порушується.
 
 
+# UPD. Виправляємо автокореляцію повної моделі.
+# УЗАГАЛЬНЕНІ НАЙМЕНШІ КВАДРАТИ.
+e <- residuals(model_log1_75_Sq)
+rho <- cor(e[-1], e[-length(e)]) # 0.5924019
+acf(residuals(model_log1_75_Sq), main = "ACF залишків")
+# Із графіка функції автокореляції видно, що статистично значимимою є автокореляція першого порядку
+# при rho = 0.59, що свідчить про наявність AR(1) структури в залишках.
+# Отже, зафіксуємо параметр rho = 0.59. Якщо його не фіксувати, то gls його оцінює як 1, і видає
+# зовсім неадекватну модель.
 
+model_full_gls <- gls(log(Ціна) ~ . + I(Долар^2), correlation = corAR1(form = ~1, value = rho, fixed = TRUE),
+                      data = model1_75_df)
+summary(model_full_gls)
+
+time_series_residuals(model_full_gls, normalized = TRUE)
+gls_dwtest(model_full_gls) # DW = 1.4337, p-value = 0.0069
+acf(residuals(model_full_gls, type = "normalized"), main = "ACF залишків")
+# Спрацювало! Тепер модель не потерпає від автокореляції.
+
+
+# ==== 7) ВІДБІР ЗМІННИХ ====
 
 # Усі можливі регресії
-all_models <- regsubsets(log(Ціна) ~ Євро + Долар + I(Долар^2) + ІФС + ІГР + ІЦБ + ЧисНасел + РівДолар,
-                         data = model1_75_df,
-                         nbest = 3)
+all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2), data = model1_75_df, nbest = 3)
 
-plot(all_models, scale = "adjr2")
+plot_subsets(all_models)
+best_models_summary(all_models, 10)
 
-# Найкраща за adj R²
-best_adjr2 <- which.max(summary(all_models)$adjr2)
+# Найцікавіше: 3. ЧисНасел + РівДолар  | BIC = -129.91 (p = 3)
+lm_BIC3 <- lm(log(Ціна) ~ ЧисНасел + РівДолар, data = model1_75_df)
+summary(lm_BIC3) # Adjusted R-squared:  0.8583 - не значно гірше за найкращі моделі по R2.
 
-# Найкраща за BIC
-best_bic <- which.min(summary(all_models)$bic)
+# Найкраща модель за всіма показниками:
+# 1. Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8901 (p = 8)
+lm_Rsq1 <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
+summary(lm_Rsq1)
 
-# Найкраща за Cp
-best_cp <- which.min(abs(summary(all_models)$cp - apply(summary(all_models)$which, 1, sum)))
+anova(lm_BIC3, lm_Rsq1) # додаткові змінні дійсно покращують модель.  Модель із p = 8 краща.
 
-cat("Найкращі моделі (індекси):\n")
-cat("Adj R²:", best_adjr2, "\n")
-cat("BIC:   ", best_bic, "\n")
-cat("Cp:    ", best_cp, "\n")
+# 3. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8852 (p = 7)
+lm_Rsq3 <- lm(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
+summary(lm_Rsq3)
+
+anova(lm_Rsq3, lm_Rsq1) # На межі. Додавання ІГР не значно покращує модель. Залишимо дві.
+
+
+# 5. Євро + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8787 (p = 7)
+lm_Rsq5 <- lm(log(Ціна) ~ Євро + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
+summary(lm_Rsq5)
+
+anova(lm_Rsq5, lm_Rsq3)
+anova(lm_Rsq5, lm_Rsq1)
+# моделі 1, 3 кращі. При чому pval(ІГР) = 0.09.
+
+
+## Те саме, але для GLS-моделі
+
+
+
+# ======== ФІНАЛЬНА МОДЕЛЬ ========
+summary(lm_Rsq1)
+summary(lm_Rsq3)
+summary(lm_BIC3)
+
+
+# ==== 7.1) МУЛЬТИКОЛІНЕАРНІСТЬ-2. VIF, ЧИСЛО ОБУМОВЛЕНОСТІ ====
+compute_vifs(lm_Rsq1)
+compute_vifs(lm_Rsq3) # Трохи краще (логічно, бо змінних стало менше)
+# Євро: 6.1 -> 6.4. Решта, крім Долара - майже те саме.
+compute_vifs(lm_BIC3) 
+
+
+# ==== 7.2) АНАЛІЗ ЗАЛИШКІВ І ВИЯВЛЕННЯ ВИКИДІВ ====
+residuals_plot(lm_Rsq1)
+residuals_plot(lm_Rsq3) # Рівномірніше
+residuals_plot(lm_BIC3)
+
+residuals_regressors_plot(lm_Rsq1, c(2, 4), type = "rstudent")
+residuals_regressors_plot(lm_Rsq3, c(2, 4), type = "rstudent")
+residuals_regressors_plot(lm_BIC3, c(2, 1), type = "rstudent")
+
+
+# Відстань Кука.
+cooks_dist(lm_Rsq1)
+cooks_dist(lm_Rsq3)
+cooks_dist(lm_BIC3)
+
+df_fits(lm_Rsq1)
+df_fits(lm_Rsq3)
+df_fits(lm_BIC3)
+
+df_betas(lm_Rsq1)
+df_betas(lm_Rsq3)
+df_betas(lm_BIC3)
+# для lm_BIC3 впливових точок дуже мало
+
+
+
+# ==== 7.3) ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ, НОРМАЛЬНІСТЬ ====
+
+# ЛІНІЙНІСТЬ
+plot(model_log1_75_Sq, which = 1)
+plot(lm_Rsq1, which = 1)
+plot(lm_Rsq3, which = 1)
+# Різниці між двома моделями немає.
+# LOESS лінія майже не змінилась
+plot(lm_BIC3, which = 1)
+
+av_plots(lm_Rsq1)
+av_plots(lm_Rsq3) # Прибрали ІГР, і тепер всі графіки нормальні.
+# Решта - те саме.
+av_plots(lm_BIC3)
+
+
+# ГОМОСКЕДАСТИЧНІСТЬ
+plot(lm_Rsq1, which = 3) # Трохи краще.
+plot(lm_Rsq3, which = 3)
+# Покращення немає.
+plot(lm_BIC3, which = 3) # Гірше.
+
+bptest(lm_Rsq1) # p-value = 0.3187
+bptest(lm_Rsq3) # p-value = 0.3431
+# Було p-value = 0.2087.
+bptest(lm_BIC3) # p-value = 0.7527
+
+
+# ЛІНІЙНІСТЬ.
+resettest(lm_Rsq1, power = 2) # p-value = 0.3529
+resettest(lm_Rsq3, power = 2) # p-value = 0.741
+resettest(lm_BIC3, power = 2) # p-value = 0.7762
+
+crPlots(lm_Rsq1)
+crPlots(lm_Rsq3) # Прибрали ІГР, і тепер всі графіки нормальні.
+# Решта - те саме.
+crPlots(lm_BIC3)
+
+observe_transforms_x(lm_Rsq1, regressors = names(coef(lm_Rsq1))[-1])
+# +square(ІГР) = 2.300244e - найкращий показник. Проте для збереження простоти моделі,
+# залишимо як є.
+observe_transforms_x(lm_Rsq3, regressors = names(coef(lm_Rsq3))[-1])
+observe_transforms_x(lm_BIC3, regressors = names(coef(lm_BIC3))[-1])
+
+
+# НОРМАЛЬНІСТЬ
+qq_plot(lm_Rsq1) # Трохи гірше, ніж було.
+shapiro.test(residuals(lm_Rsq1)) # p-value = 0.6991
+qq_plot(lm_Rsq3)
+shapiro.test(residuals(lm_Rsq3)) # p-value = 0.7598
+qq_plot(lm_BIC3)
+shapiro.test(residuals(lm_BIC3)) # p-value = 0.2112
+
+
+# ==== 7.4) АВТОКОРЕЛЯЦІЯ ====
+time_series_residuals(lm_Rsq1)
+dwtest(lm_Rsq1) # DW = 0.80818, p-value = 8.422e-11.
+
+time_series_residuals(lm_Rsq3)
+dwtest(lm_Rsq3) # DW = 0.72441, p-value = 3.459e-12.
+
+time_series_residuals(lm_BIC3)
+dwtest(lm_BIC3) # DW = 0.50646, p-value = 9.334e-16
+
+summary(lm_Rsq1)$coefficients
+coeftest(lm_Rsq1, vcov = vcovHAC(lm_Rsq1))
+
+summary(lm_Rsq3)$coefficients
+coeftest(lm_Rsq3, vcov = vcovHAC(lm_Rsq3))
+# Погано! Значущими залишаються тільки дві змінні:
+# ЧисНасел     6.8728e-06  9.6461e-07  7.1250 1.043e-09 ***
+# РівДолар    -3.7835e-02  3.7890e-03 -9.9856 9.437e-15 ***
+# Це ті самі дві змінні, які були в моделі, що мала один із найвищих BIC.
+# Отже, краще розглядати ще й ту модель.
+# Повернімося назад, і проведімо діагнозтику і для неї.
+
+# Зауважимо, що для моделі lm_Rsq1 стандартні похибки не є такими завищеними, тому
+# вона, мабуть, є кращою за lm_Rsq3.
+
+summary(lm_BIC3)$coefficients
+coeftest(lm_BIC3, vcov = vcovHAC(lm_BIC3))
+# Отже, для моделі з двома предикторами регресійні припущення виконуються.
+
+final_models <- c(lm_BIC3)
+
+# Повертаємося назад, і виправляємо автокореляцію для повної моделі.
+
 
 
 # ----- 38 спостережень -----
