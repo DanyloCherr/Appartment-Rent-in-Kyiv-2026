@@ -558,6 +558,7 @@ cor_matrix_75 <- model_cor_matrix(model_df_75[, -1], "")
 # Змінна Час сильно корелює із двома змінними - РівДолар, ЧисНасел.
 # Приберемо її.
 
+
 model1_75_df <- model_df_75[, !names(model_df_75) %in% c("К2", "К3", "Ч", "Дата")]
 colnames(model1_75_df)[colnames(model1_75_df) == "К1"] <- "Ціна"
 head(model1_75_df, 3)
