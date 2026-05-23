@@ -43,7 +43,6 @@ model_cor_matrix <- function(model_df, title_param){
            mar = c(2, 0, 0, 0))
   
   mtext(title_param, side = 1, line = 2, cex = 1.2)
-  
   return(cor_matrix)
 }
 
@@ -117,11 +116,9 @@ head(df_predictors26)
 model_df_75 <- merge(df_predictors75, data1$MULTIROOM, by = "Дата", all = TRUE)
 
 # ===== 38 спостережень =====
-model_df_38 <- merge(df_predictors38, data1$MULTIROOM, by = "Дата", all = TRUE)
+model_df_38 <- merge(df_predictors38, data1$MULTIROOM, by = "Дата", all = FALSE)
 
 # ===== 26 спостережень =====
-model_df_26 <- merge(df_predictors26, data1$MULTIROOM, by = "Дата", all = TRUE)
-
-
+model_df_26 <- merge(df_predictors26, data1$MULTIROOM, by = "Дата", all = FALSE)
 
 

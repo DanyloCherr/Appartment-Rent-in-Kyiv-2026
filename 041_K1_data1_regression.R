@@ -19,6 +19,17 @@ library(nlme)
 
 # Побудуємо модель на основі цін для однокімнатних квартир.
 
+upd_model_df <- function(model_df, remove = c(), room_num = 1){
+  K_remove <- switch(room_num,
+                     "1" = c("К2", "К3"),
+                     "2" = c("К1", "К3"),
+                     "3" = c("К1", "К2"),
+                     c()
+  )
+  result <- model_df[, !names(model_df) %in% c(K_remove, "Дата", remove)]
+  return(result)
+}
+
 
 unit_length_scale <- function(x){ # Передаємо один стовпець
   centered <- x - mean(x)
@@ -34,7 +45,7 @@ compute_vifs <- function(model){
   model_df_norm <- as.data.frame(lapply(model_data, unit_length_scale))
   model_norm <- lm(Y ~ ., data = model_data)
   
-  vif(model_norm)
+  return(vif(model_norm))
 }
 
 
@@ -382,10 +393,162 @@ observe_transforms_y <- function(model){
 }
 
 
+observe_best_interactions <- function(model, data, top_n = 5){
+  predictors <- attr(terms(model), "term.labels")
+  
+  # Складні ефекти взаємодії не розглядаємо
+  predictors <- predictors[!grepl("\\^|log\\(|sqrt\\(|I\\(", predictors)]
+  
+  results <- data.frame(
+    interaction = character(),
+    AIC = numeric(),
+    delta_AIC = numeric(),
+    p_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  base_AIC <- AIC(model)
+  
+  for (i in 1:(length(predictors) - 1)) {
+    for (j in (i + 1):length(predictors)) {
+      p1 <- predictors[i]
+      p2 <- predictors[j]
+      
+      formula_prod <- as.formula(paste(". ~ . +", p1, "*", p2))
+      model_prod <- try(update(model, formula_prod), silent = TRUE)
+      
+      if (!inherits(model_prod, "try-error")) {
+        aic_prod <- AIC(model_prod)
+        p_prod <- anova(model, model_prod)$`Pr(>F)`[2]
+        results <- rbind(results, data.frame(
+          interaction = paste(p1, "×", p2),
+          AIC = aic_prod,
+          delta_AIC = base_AIC - aic_prod,
+          p_value = p_prod
+        ))
+      }
+      
+      formula_ratio1 <- as.formula(paste(". ~ . + I(", p1, "/", p2, ")"))
+      model_ratio1 <- try(update(model, formula_ratio1), silent = TRUE)
+      
+      if (!inherits(model_ratio1, "try-error")) {
+        aic_ratio1 <- AIC(model_ratio1)
+        p_ratio1 <- anova(model, model_ratio1)$`Pr(>F)`[2]
+        results <- rbind(results, data.frame(
+          interaction = paste(p1, "/", p2),
+          AIC = aic_ratio1,
+          delta_AIC = base_AIC - aic_ratio1,
+          p_value = p_ratio1
+        ))
+      }
+      
+      formula_ratio2 <- as.formula(paste(". ~ . + I(", p2, "/", p1, ")"))
+      model_ratio2 <- try(update(model, formula_ratio2), silent = TRUE)
+      
+      if (!inherits(model_ratio2, "try-error")) {
+        aic_ratio2 <- AIC(model_ratio2)
+        p_ratio2 <- anova(model, model_ratio2)$`Pr(>F)`[2]
+        results <- rbind(results, data.frame(
+          interaction = paste(p2, "/", p1),
+          AIC = aic_ratio2,
+          delta_AIC = base_AIC - aic_ratio2,
+          p_value = p_ratio2
+        ))
+      }
+    }
+  }
+  
+  results <- results[order(-results$delta_AIC), ]
+  
+  cat("\n========== Найкращі", top_n, "взаємодій ==========\n")
+  for (i in 1:min(top_n, nrow(results))) {
+    r <- results[i, ]
+    cat(sprintf("%d. %s | ΔAIC = %.2f | p = %.4f \n",
+                i, r$interaction, r$delta_AIC, r$p_value))
+  }
+  invisible(results)
+}
+
+
 gls_dwtest <- function(gls_model){
   e <- residuals(gls_model, type = "normalized")
   # type = "normalized" - витягти залишки після домноження рівняння на К^-1
   dwtest(lm(e ~ 1))
+}
+
+
+analyze_selected_models <- function(all_subsets, data, indices, rho){
+  sm <- summary(all_subsets)
+  which_mat <- sm$which
+  bic <- sm$bic
+  
+  for(i in seq_along(indices)) {
+    idx <- indices[i]
+    vars <- names(which(which_mat[idx, -1]))
+    
+    cat("\n========================================\n")
+    cat(sprintf("Модель %d (BIC = %.2f):\n", i, bic[idx]))
+    cat(paste(vars, collapse = " + "), "\n")
+    cat("========================================\n")
+    
+    formula <- as.formula(paste("log(Ціна) ~", paste(vars, collapse = " + ")))
+    model_ols <- lm(formula, data = data)
+    
+    cat("\n--- HAC (Newey-West) ---\n")
+    hac_test <- coeftest(model_ols, vcov = vcovHAC(model_ols))
+    print(hac_test)
+    
+    p_values <- hac_test[, 4]
+    significant <- p_values < 0.05
+    if (all(significant)) {
+      cat("\n Усі змінні значущі (HAC)\n")
+    } else {
+      cat("\n Незначущі:", paste(names(p_values)[!significant], collapse = ", "), "\n")
+    }
+    
+    cat("\n--- GLS (ρ = ", rho, ") ---\n", sep = "")
+    model_gls <- try(gls(formula, 
+                         correlation = corAR1(form = ~1, value = rho, fixed = TRUE),
+                         data = data), silent = TRUE)
+    
+    if (inherits(model_gls, "try-error")) {
+      cat("GLS не побудовано\n")
+    } else {
+      gls_table <- summary(model_gls)$tTable
+      print(gls_table)
+      
+      p_gls <- gls_table[, "p-value"]
+      sig_gls <- p_gls < 0.1
+      if (all(sig_gls)) {
+        cat("\nУсі змінні значущі (GLS)\n")
+      } else {
+        cat("\nНезначущі (GLS):", paste(rownames(gls_table)[!sig_gls], collapse = ", "), "\n")
+      }
+    }
+  }
+}
+
+
+assumptions_check <- function(model){
+  cat("── 1. Мультиколінеарність (VIF) ──\n")
+  print(compute_vifs(model))
+
+  cat("\n── 2. Залишки та викиди ──\n")
+  cooks_dist(model)
+  df_fits(model)
+  #df_betas(model)
+  
+  cat("\n── 3. Лінійність ──\n")
+  print(resettest(model, power = 2))
+  
+  cat("\n── 4. Гомоскедастичність ──\n")
+
+  print(bptest(model)) 
+
+  cat("\n── 5. Нормальність ──\n")
+  print(shapiro.test(residuals(model)))
+  
+  cat("\n── 6. Автокореляція ──\n")
+  print(dwtest(model)) 
 }
 
 
@@ -403,8 +566,6 @@ head(model1_75_df, 3)
 
 
 # ==== 2) ПОВНА МОДЕЛЬ ====
-model_temp <- lm(Ціна ~ ІГР, data = model1_75_df)
-summary(model_temp)
 
 model_full1_75 <- lm(Ціна ~ ., data = model1_75_df)
 summary(model_full1_75)
@@ -769,50 +930,70 @@ time_series_residuals(model_full_gls, normalized = TRUE)
 gls_dwtest(model_full_gls) # DW = 1.4337, p-value = 0.0069
 acf(residuals(model_full_gls, type = "normalized"), main = "ACF залишків")
 # Спрацювало! Тепер модель не потерпає від автокореляції.
+# Але використовувати повну модель ми не будемо, просто використаємо gls для
+# найкращих моделей з відбору.
+
+
 
 
 # ==== 7) ВІДБІР ЗМІННИХ ====
+# GLS не працює із R2 і Cp, тому основну увагу приділяємо BIC.
 
 # Усі можливі регресії
 all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2), data = model1_75_df, nbest = 3)
 
 plot_subsets(all_models)
-best_models_summary(all_models, 10)
+best_models <- best_models_summary(all_models, 10)
 
-# Найцікавіше: 3. ЧисНасел + РівДолар  | BIC = -129.91 (p = 3)
+
+# 3. ЧисНасел + РівДолар  | BIC = -129.91 (p = 3)
 lm_BIC3 <- lm(log(Ціна) ~ ЧисНасел + РівДолар, data = model1_75_df)
 summary(lm_BIC3) # Adjusted R-squared:  0.8583 - не значно гірше за найкращі моделі по R2.
+coeftest(lm_BIC3, vcov = vcovHAC(lm_BIC3))
+final_models <- list("2vars_BIC3" = lm_BIC3)
 
-# Найкраща модель за всіма показниками:
+
 # 1. Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8901 (p = 8)
 lm_Rsq1 <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
 summary(lm_Rsq1)
-
 anova(lm_BIC3, lm_Rsq1) # додаткові змінні дійсно покращують модель.  Модель із p = 8 краща.
+coeftest(lm_Rsq1, vcov = vcovHAC(lm_Rsq1)) # Долар на межі.
+final_models[["7vars_Rsq1"]] <- lm_Rsq1
 
 # 3. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8852 (p = 7)
 lm_Rsq3 <- lm(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
-summary(lm_Rsq3)
-
+summary(lm_Rsq3) 
 anova(lm_Rsq3, lm_Rsq1) # На межі. Додавання ІГР не значно покращує модель. Залишимо дві.
+coeftest(lm_Rsq3, vcov = vcovHAC(lm_Rsq3))
+lm_Rsq3_gls <- gls(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), 
+                   correlation = corAR1(form = ~1, value = rho, fixed = TRUE),
+                   data = model1_75_df)
+summary(lm_Rsq3_gls) # ІЦБ, Євро - не значущі.
+
+lm_Rsq3_gls2 <- gls(log(Ціна) ~ Євро + Долар + ЧисНасел + РівДолар + I(Долар^2), 
+                   correlation = corAR1(form = ~1, value = rho, fixed = TRUE),
+                   data = model1_75_df)
+summary(lm_Rsq3_gls2)
 
 
 # 5. Євро + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8787 (p = 7)
 lm_Rsq5 <- lm(log(Ціна) ~ Євро + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
 summary(lm_Rsq5)
+coeftest(lm_Rsq5, vcov = vcovHAC(lm_Rsq5))
 
-anova(lm_Rsq5, lm_Rsq3)
-anova(lm_Rsq5, lm_Rsq1)
-# моделі 1, 3 кращі. При чому pval(ІГР) = 0.09.
+lm_Rsq5_gls <- gls(log(Ціна) ~ Євро + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), 
+                   correlation = corAR1(form = ~1, value = rho, fixed = TRUE),
+                   data = model1_75_df)
+summary(lm_Rsq5_gls) # Погано
 
-
-## Те саме, але для GLS-моделі
-
+best_bic <- best_models$top_bic
+analyze_selected_models(all_models, model1_75_df, indices = best_bic, rho = rho)
 
 
 # ======== ФІНАЛЬНА МОДЕЛЬ ========
+names(final_models)
+
 summary(lm_Rsq1)
-summary(lm_Rsq3)
 summary(lm_BIC3)
 
 
@@ -932,16 +1113,63 @@ summary(lm_BIC3)$coefficients
 coeftest(lm_BIC3, vcov = vcovHAC(lm_BIC3))
 # Отже, для моделі з двома предикторами регресійні припущення виконуються.
 
-final_models <- c(lm_BIC3)
-
-# Повертаємося назад, і виправляємо автокореляцію для повної моделі.
 
 
+# ======== 8) ЕФЕКТИ ВЗАЄМОДІЇ ========
+# Працюємо із наступною моделлю:
+summary(lm_Rsq1)
+aic_base <- AIC(lm_Rsq1)
+bic_base <- BIC(lm_Rsq1)
 
-# ----- 38 спостережень -----
-cor_matrix_38 <- model_cor_matrix(model_df_38[, -1], "")
+interactions_result <- observe_best_interactions(lm_Rsq1, model1_75_df, top_n = 10)
+
+# 1. Долар × ІЦБ | ΔAIC = 5.62 | p = 0.0101 
+inter_lm1 <- update(lm_Rsq1, . ~ . + Долар:ІЦБ)
+summary(inter_lm1)
+coeftest(inter_lm1, vcov = vcovHAC(inter_lm1)) # Долар^2 став не значущим.
+inter_lm1 <- update(inter_lm1, . ~ . - I(Долар^2))
+summary(inter_lm1)
+coeftest(inter_lm1, vcov = vcovHAC(inter_lm1))
+aic_base - AIC(inter_lm1)
+bic_base - BIC(inter_lm1) # 3.894771
+# inter_lm1 трохи краща
 
 
-# ----- 26 спостережень -----
-cor_matrix_26 <- model_cor_matrix(model_df_26[, -1], "")
+# 2. Долар / Євро | ΔAIC = 5.44 | p = 0.0110 
+inter_lm2 <- update(lm_Rsq1, . ~ . + I(Долар / Євро))
+summary(inter_lm2)
+coeftest(inter_lm2, vcov = vcovHAC(inter_lm2))
+bic_base - BIC(inter_lm2) # 3.167044
+# inter_lm2 - краща, але складніша.
 
+
+# 3. ІЦБ / Долар | ΔAIC = 5.15 | p = 0.0127 
+inter_lm3 <- update(lm_Rsq1, . ~ . + I(ІЦБ / Долар))
+summary(inter_lm3)
+coeftest(inter_lm3, vcov = vcovHAC(inter_lm3))
+bic_base - BIC(inter_lm3) # 2.876924
+# Те саме, але ефект слабший.
+
+
+# 4. РівДолар / Євро | ΔAIC = 4.83 | p = 0.0149 
+inter_lm4 <- update(lm_Rsq1, . ~ . + I(РівДолар / Євро))
+summary(inter_lm4)
+coeftest(inter_lm4, vcov = vcovHAC(inter_lm4)) # ІЦБ - не значуща
+inter_lm4 <- update(inter_lm4, . ~ . - ІЦБ)
+summary(inter_lm4)
+coeftest(inter_lm4, vcov = vcovHAC(inter_lm4))
+aic_base - AIC(inter_lm4)
+bic_base - BIC(inter_lm4) # 6.034939
+
+assumptions_check(lm_BIC3) # DW = 0.50646
+assumptions_check(lm_Rsq1) # DW = 0.80818
+assumptions_check(inter_lm1) # DW = 0.94913
+assumptions_check(inter_lm2) # DW = 1.0045
+assumptions_check(inter_lm3) # DW = 0.97155
+assumptions_check(inter_lm4) # DW = 1.0272
+# Для всіх моделей виконуються всі припущення, крім некорельованості залишків.
+
+final_models[["Долар × ІЦБ"]] <- inter_lm1
+final_models[["Долар / Євро"]] <- inter_lm2
+final_models[["ІЦБ / Долар"]] <- inter_lm3
+final_models[["РівДолар / Євро"]] <- inter_lm4
