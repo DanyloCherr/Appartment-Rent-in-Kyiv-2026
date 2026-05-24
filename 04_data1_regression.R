@@ -43,7 +43,6 @@ model_cor_matrix <- function(model_df, title_param){
            mar = c(2, 0, 0, 0))
   
   mtext(title_param, side = 1, line = 2, cex = 1.2)
-  return(cor_matrix)
 }
 
 
