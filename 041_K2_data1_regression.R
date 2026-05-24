@@ -96,7 +96,6 @@ summary(model_log2_75)
 
 
 # ======== НОВА МОДЕЛЬ 1 ========
-# ==== 5.1.1) ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ ====
 # ЛІНІЙНІСТЬ
 plot(model_log2_75, which = 1) # Те саме?
 residuals_plot(model_log2_75) # Трохи рівномірніше.
@@ -105,167 +104,401 @@ residuals_regressors_plot(model_log2_75, c(2, 4), type = "rstudent")
 # Можливо, трохи краще.
 
 av_plots(model_log2_75)
-
 # Трошечки краще, але основні проблеми з ІФС, ІГР залишаються.
 
+resettest(model_log2_75, power = 2) # p-value = 0.168
+
+crPlots(model_log2_75)
 
 
 # ГОМОСКЕДАСТИЧНІСТЬ
-plot(model_log1_75, which = 3)
-# Те саме?
+plot(model_log2_75, which = 3)
+bptest(model_log2_75) # p-value = 0.01647
 
 
-bptest(model_log2_75)
-# Тест Бройша-Паґана: p-value = 0.07515 - гіпотезу про гомоскедастичність не відхиляємо.
+observe_transforms_x(model_log2_75, regressors = names(coef(model_log2_75))[-1])
 
-
-# ЛІНІЙНІСТЬ.
-resettest(model_log1_75, power = 2) # p-value = 0.214
-resettest(model_log1_75, power = 3) # p-value = 5.08e-05
-# Нормально. Кубічний член все одно поки не додаватимемо.
-
-
-crPlots(model_log1_75)
-# Трошки краще (але не значно)
-
-# Модифікуємо функцію так, щоб вона не лише заміняла змінні на трансформовані, 
-# а і був варіант, де до моделі додається нова змінна, а стара при цьому залишається.
-observe_transforms_x(model_log1_75, regressors = names(coef(model_log1_75))[-1])
-# Можна було б застосувати BoxTidwell, якби ми вручну не прописали функцію, яка 
-# підбирає перетворення.
-# До долара варто застосувати одне з перетворень: +sqrt, +square, +inverse, +log
-# Кожне з них однаково покращує модель, тому поки що залишимо дві моделі - з квадратом і логарифмом
-model_log1_75_Sq <- lm(log(Ціна) ~ . + I(Долар^2), data = model1_75_df) 
-model_log1_75_Lg <- lm(log(Ціна) ~ . + log(Долар), data = model1_75_df) 
+model_log2_75_Sq <- lm(log(Ціна) ~ . + I(Долар^2), data = model2_75_df) 
+# AIC_diff = 3.7182077
 
 
 
 # ======== НОВА МОДЕЛЬ 2 ========
-
-# ==== 5.2.1) ПОВНА МОДЕЛЬ ====
-summary(model_log1_75_Sq)
-summary(model_log1_75_Lg)
-# Всі значення майже однакові. 
-# pval(ІФС) = 0.81139. Вільний член тепер додатний.
-
-
-# ==== 5.2.2) МУЛЬТИКОЛІНЕАРНІСТЬ-2. VIF, ЧИСЛО ОБУМОВЛЕНОСТІ ====
-model_data1 <- model_log1_75_Sq$model
-colnames(model_data1)[1] <- "Log_Ціна"
-model_log1_75_Sq_df_norm <- as.data.frame(lapply(model_data1, unit_length_scale))
-model_log1_75_Sq_norm <- lm(Log_Ціна ~ ., data = model_data1)
-
-model_data2 <- model_log1_75_Lg$model
-colnames(model_data2)[1] <- "Log_Ціна"
-model_log1_75_Lg_df_norm <- as.data.frame(lapply(model_data2, unit_length_scale))
-model_log1_75_Lg_norm <- lm(Log_Ціна ~ ., data = model_data2)
-
-vif(model_log1_75_Sq_norm)
-vif(model_log1_75_Lg_norm)
-# Євро: 6.1 -> 6.4. Решта, крім Долара - майже те саме.
-
-condition_number(model_log1_75_Sq_df_norm, 0)
-condition_number(model_log1_75_Lg_df_norm, 0)
-# Ну, мабуть, це нормально :0
-
-
-# ==== 5.2.3) АНАЛІЗ ЗАЛИШКІВ І ВИЯВЛЕННЯ ВИКИДІВ ====
-residuals_plot(model_log1_75_Sq)
-residuals_plot(model_log1_75_Lg)
-# Трохи рівномірніше.
-
-residuals_regressors_plot(model_log1_75_Sq, c(2, 4), type = "rstudent")
-residuals_regressors_plot(model_log1_75_Lg, c(2, 4), type = "rstudent")
-# Долар^2 виглядає трохи краще, ніж log(Долар)
-# Трохи рівномірніше.
-
-# Відстань Кука.
-cooks_dist(model_log1_75_Sq)
-cooks_dist(model_log1_75_Lg)
-
-df_fits(model_log1_75_Sq)
-df_fits(model_log1_75_Lg)
-
-df_betas(model_log1_75_Sq)
-df_betas(model_log1_75_Lg)
-# Впливових точок тепер на одну менше.
-
-influential_points <- model_log1_75_Sq$model[c(13, 33, 48, 72), ]
-influential_points
-
-
-# ==== 5.2.4) ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ, НОРМАЛЬНІСТЬ ====
+summary(model_log2_75_Sq)
 
 # ЛІНІЙНІСТЬ
-plot(model_log1_75_Sq, which = 1)
-plot(model_log1_75_Lg, which = 1)
-# Те саме?
+plot(model_log2_75_Sq, which = 1) # Те саме?
+residuals_plot(model_log2_75_Sq) # Трохи рівномірніше?
 
+residuals_regressors_plot(model_log2_75_Sq, c(2, 4), type = "rstudent")
+# Здається, Долар і ІЦБ виглядають рівномірніше.
 
-av_plots(model_log1_75_Sq)
-av_plots(model_log1_75_Lg)
-# ІФС, ЧисНасел виглядають трохи краще. Проблема з ІГР та ж.
+av_plots(model_log2_75_Sq)
+
+resettest(model_log2_75_Sq, power = 2) # p-value = 0.1099
+
+crPlots(model_log2_75_Sq)
+# Для деяких змінних виглядає ідеально.
 
 
 # ГОМОСКЕДАСТИЧНІСТЬ
-plot(model_log1_75_Sq, which = 3)
-plot(model_log1_75_Lg, which = 3)
-# Краще!
+plot(model_log2_75_Sq, which = 3) # Майже виправили.
+bptest(model_log2_75_Sq) # p-value = 0.05032 - приймаємо.
 
 
-bptest(model_log1_75_Sq) # p-value = 0.2087
-bptest(model_log1_75_Lg) # p-value = 0.2024
-# Було p-value = 0.07515.
+# AIC = -121.1533
+# Для моделі з 1-кімнатними квартирами на цьому етапі було AIC = -128.7928.
+# Не дивно, що знайдеться таке перетворення, яке суттєво покращить AIC.
+
+observe_transforms_x(model_log2_75_Sq, regressors = names(coef(model_log2_75_Sq))[-1])
+model_log2_75_SqSq <- lm(log(Ціна) ~ . + I(Долар^2) + I(Євро^2), data = model2_75_df) 
+# AIC_diff = 4.045678
 
 
-# ЛІНІЙНІСТЬ.
-resettest(model_log1_75_Sq, power = 2) # p-value = 0.3665
-resettest(model_log1_75_Sq, power = 3) # p-value = 7.923e-06
-resettest(model_log1_75_Lg, power = 2) # p-value = 0.3707
-resettest(model_log1_75_Lg, power = 3) # p-value = 8.167e-06
+
+# ======== НОВА МОДЕЛЬ 3 ========
+summary(model_log2_75_SqSq)
+
+# ЛІНІЙНІСТЬ
+plot(model_log2_75_SqSq, which = 1) # Те саме?
+residuals_plot(model_log2_75_SqSq) # Менш однорідно?
+
+residuals_regressors_plot(model_log2_75_SqSq, c(3, 3), type = "rstudent")
+# Не значно.
+
+av_plots(model_log2_75_SqSq) # Гірше?
+
+resettest(model_log2_75_SqSq, power = 2) # p-value = 0.214
+
+crPlots(model_log2_75_SqSq)
+# Тепер і євро виглядає ідеально. ІЦБ - ще трохи краще.
 
 
-crPlots(model_log1_75_Sq)
-crPlots(model_log1_75_Lg)
-# Євро, Долар - трохи краще. Долар, нова змінна виглядають ідеально.
+# ГОМОСКЕДАСТИЧНІСТЬ
+plot(model_log2_75_SqSq, which = 3) # Не скажеш, що краще.
+bptest(model_log2_75_SqSq) # p-value = 0.1267 - краще.
+
+# Отже, спробуємо поки цю модель, що містить Євро^2, адже ніколи не пізно 
+# цю змінну вилучити.
+
+observe_transforms_x(model_log2_75_SqSq, regressors = names(coef(model_log2_75_SqSq))[-1])
+model_log2_75_SqSq <- lm(log(Ціна) ~ . + I(Долар^2) + I(Євро^2), data = model2_75_df) 
+# AIC_diff = 4.045678e
 
 
-observe_transforms_x(model_log1_75_Sq, regressors = names(coef(model_log1_75_Sq))[-1])
-# +square(ІГР) = 2.238090e+00 - найкращий показник. Проте для збереження простоти моделі,
-# залишимо як є.
-observe_transforms_x(model_log1_75_Lg, regressors = names(coef(model_log1_75_Lg))[-1])
-# Аналогічно.
+
+# ==== 6) НОРМАЛЬНІСТЬ ====
+qq_plot(model_log2_75_Sq)
+shapiro.test(residuals(model_log2_75_Sq)) # p-value = 0.8839
+qq_plot(model_log2_75_SqSq)
+shapiro.test(residuals(model_log2_75_SqSq)) # p-value = 0.9475
 
 
-# НОРМАЛЬНІСТЬ
-qq_plot(model_full1_75) # p-value = 0.4237
-shapiro.test(residuals(model_full1_75))
-
-qq_plot(model_log1_75) # З логарифмом виглядає трохи краще.
-shapiro.test(residuals(model_log1_75)) # p-value = 0.894
-
-qq_plot(model_log1_75_Sq) # Трохи гірше, ніж було.
-shapiro.test(residuals(model_log1_75_Sq)) # p-value = 0.6961
-qq_plot(model_log1_75_Lg) # Log(Долар) на крапельку кращий за Долар^2.
-shapiro.test(residuals(model_log1_75_Lg)) # p-value = 0.7184
-
-# Отже, між логарифмом і квадратом значимої різниці немає, тому візьмемо квадрат.
 
 
-# ==== 6) АВТОКОРЕЛЯЦІЯ ====
-time_series_residuals(model_full1_75)
-dwtest(model_full1_75) # DW = 0.67066, p-value = 1.14e-13. Погано.
+# ==== 7) АВТОКОРЕЛЯЦІЯ ====
+time_series_residuals(model_log2_75_SqSq)
+dwtest(model_log2_75_SqSq) # DW = 0.81302, p-value = 2.245e-11
+summary(model_log2_75_SqSq)
+coeftest(model_log2_75_SqSq, vcov = vcovHAC(model_log2_75_SqSq))
 
-time_series_residuals(model_log1_75)
-dwtest(model_log1_75) # DW = 0.72937, p-value = 1.921e-12. Все ще погано.
 
-time_series_residuals(model_log1_75_Sq)
-dwtest(model_log1_75_Sq) # DW = 0.80641, p-value = 3.258e-11
+# ==== 8) ВІДБІР ЗМІННИХ ====
+e2 <- residuals(model_log2_75_SqSq)
+rho2 <- cor(e2[-1], e2[-length(e2)])
 
-time_series_residuals(model_log1_75_Lg)
-dwtest(model_log1_75_Lg) # DW = 0.79976, p-value = 2.511e-11
+all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2) + I(Євро^2), data = model2_75_df, nbest = 3)
+best_models <- best_models_summary(all_models, 10)
 
-# Як можна виправити автокореляцію: 
-# - додати упущену змінну;
-# - зважені або узагальнені найменші квадрати;
-# - МЕТОДИ
+# 1.4.2. Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2)  | Adj R² = 0.8315 (p = 9)
+lm1 <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+          data = model2_75_df)
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1))
+
+
+# 2.1.1. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2)  | Adj R² = 0.8283 (p = 8)
+# Це та сама модель, але без ІГР.
+lm2 <- lm(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+          data = model2_75_df)
+summary(lm2)
+coeftest(lm2, vcov = vcovHAC(lm2)) # pval(Долар) = 0.0512557 
+
+
+# -3.10.3. Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2)  | Adj R² = 0.8263 (p = 9)
+lm3 <- lm(log(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+          data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3)) # pval(ІФС) = 0.4799013 
+
+lm3 <- update(lm3, . ~ . - ІФС, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3)) # pval(Долар) = 0.0512557  
+# Тепер це модель 2.1.1.
+
+lm3_gls <- gls(log(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2), 
+               correlation = corAR1(form = ~1, value = rho2, fixed = TRUE),
+               data = model2_75_df)
+summary(lm3_gls) # Багато незначущих.
+
+
+# - 4.7.4. Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2)  | Adj R² = 0.8208 (p = 8)
+lm3 <- lm(log(Ціна) ~ Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+          data = model2_75_df)
+summary(lm3) 
+coeftest(lm3, vcov = vcovHAC(lm3)) # pval(Долар^2) = 0.1096203
+
+lm3 <- update(lm3, . ~ . - I(Долар^2), data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3)) # pval(Долар) = 0.233710    
+
+lm3 <- update(lm3, . ~ . - Долар, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+
+lm3 <- update(lm3, . ~ . - ІГР, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+
+lm3 <- update(lm3, . ~ . - ІЦБ, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3)) 
+BIC(lm3) # -97.9662 - непогано, але порівнюючи з іншими моделями, ця є досить слабкою.
+
+
+lm3_gls <- gls(log(Ціна) ~ Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+               correlation = corAR1(form = ~1, value = rho2, fixed = TRUE),
+               data = model2_75_df)
+summary(lm3_gls)
+
+lm3_gls <- update(lm3_gls, . ~ . - ІГР)
+summary(lm3_gls) # Знову не значущі змінні. Забудемо про цю модель.
+
+
+# -7.2.7. Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2)  | Adj R² = 0.8178 (p = 7)
+lm3 <- lm(log(Ціна) ~ Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + I(Євро^2),
+          data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+
+lm3 <- update(lm3, . ~ . - I(Долар^2), data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+
+lm3 <- update(lm3, . ~ . - Долар, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+
+lm3 <- update(lm3, . ~ . - ІЦБ, data = model2_75_df)
+summary(lm3)
+coeftest(lm3, vcov = vcovHAC(lm3))
+# Це та ж модель з попереднього кроку.
+
+final_models2 <- list("8vars_Rsq1" = lm1, "7vars_Rsq2" = lm2)
+
+
+
+# Тепер за повну модель візьмемо таку ж, як і для випадку однокімнатних квартир.
+e2 <- residuals(model_log2_75_Sq)
+rho2 <- cor(e2[-1], e2[-length(e2)])
+
+all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2), data = model2_75_df, nbest = 3)
+best_models <- best_models_summary(all_models, 10)
+
+# -1.4.3. Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8185 (p = 8)
+lm1 <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+          data = model2_75_df)
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1))
+
+lm1 <- update(lm1, . ~ . - I(Долар^2))
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1)) # :(
+
+lm1_gls <- gls(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+            correlation = corAR1(form = ~1, value = rho2, fixed = TRUE),
+            data = model2_75_df)
+summary(lm1_gls) # Погано.
+
+
+# -3.1.2. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8158 (p = 7)
+lm1 <- lm(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+          data = model2_75_df)
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1))
+
+lm1 <- update(lm1, . ~ . - I(Долар^2))
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1)) # :(
+
+lm1_gls <- gls(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+               correlation = corAR1(form = ~1, value = rho2, fixed = TRUE),
+               data = model2_75_df)
+summary(lm1_gls) # Погано.
+
+
+# 4.6.4 Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8151 (p = 8)
+lm1 <- lm(log(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+          data = model2_75_df)
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1))
+
+lm1 <- update(lm1, . ~ . - ІФС)
+summary(lm1)
+coeftest(lm1, vcov = vcovHAC(lm1)) # Знову видаляти долар?.. 
+
+lm1_gls <- gls(log(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ЧисНасел + РівДолар + I(Долар^2),
+               correlation = corAR1(form = ~1, value = rho2, fixed = TRUE),
+               data = model2_75_df)
+summary(lm1_gls) # Погано.
+# Досить.
+
+# Спробуємо відразу внести ефект взаємодії, як у моделі для 1-кімнатних.
+lm2K_inter <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2) + Долар:ІЦБ,
+                 data = model2_75_df)
+summary(lm2K_inter)
+coeftest(lm2K_inter, vcov = vcovHAC(lm2K_inter))
+
+lm2K_inter <- update(lm2K_inter, . ~ . - I(Долар^2))
+summary(lm2K_inter)
+coeftest(lm2K_inter, vcov = vcovHAC(lm2K_inter))
+# Це вже краще, хоча ЧисНасел не є значущою.
+# ВИСНОВОК.
+# Якщо дуже захочемо мати абсолютно таку ж саму модель, як і для 1-кімнатних квартир
+# (для порівняння), то візьмемо відразу фінальну модель, і просто замінимо К1 на К2.
+# Але варто зауважити, що потужність такої моделі буде меншою, ніж тієї, що містить 
+# доданок Євро^2.
+
+
+
+# ======== 9) ЕФЕКТИ ВЗАЄМОДІЇ ========
+# Працюємо із двома моделями.
+lm1 <- final_models2[[1]]
+lm2 <- final_models2[[2]]
+
+#### lm1 ####
+summary(lm1)
+aic_base <- AIC(lm1)
+bic_base <- BIC(lm1)
+
+interactions_result <- observe_best_interactions(lm1, model2_75_df, top_n = 10)
+
+# 1. Євро / Долар | ΔAIC = 20.55 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + I(Євро / Долар))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - ІГР)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+aic_base - AIC(inter_lm) # 21.98788
+bic_base - BIC(inter_lm) # 21.98788
+inter_lm1 <- inter_lm
+
+
+# 2. Євро × Долар | ΔAIC = 19.40 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + Євро:Долар)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - Долар)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+inter_lm <- update(inter_lm, . ~ . - ІГР)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+aic_base - AIC(inter_lm) # 19.8573
+bic_base - BIC(inter_lm) # 22.13396
+inter_lm2 <- inter_lm
+
+
+# 3. Долар / Євро | ΔAIC = 12.79 | p = 0.0004 
+inter_lm <- update(lm1, . ~ . + I(Долар / Євро))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - I(Долар^2))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+aic_base - AIC(inter_lm) # 10.56671
+bic_base - BIC(inter_lm) # 10.56671
+inter_lm3 <- inter_lm
+
+
+# 4. Долар × ІЦБ | ΔAIC = 12.31 | p = 0.0005 
+inter_lm <- update(lm1, . ~ . + Долар:ІЦБ)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - ЧисНасел)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+aic_base - AIC(inter_lm) # 12.28047
+bic_base - BIC(inter_lm) # 12.28047
+inter_lm4 <- inter_lm
+
+
+# 5. ІЦБ / Долар | ΔAIC = 11.93 | p = 0.0006 
+inter_lm <- update(lm1, . ~ . + I(ІЦБ / Долар))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - ЧисНасел)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm))
+
+aic_base - AIC(inter_lm) # 12.11424
+bic_base - BIC(inter_lm) # 12.11424
+inter_lm5 <- inter_lm
+
+
+# ВИСНОВОК.
+# НАЙКРАЩІ МОДЕЛІ - 1 ТА 2.
+summary(inter_lm1)
+summary(inter_lm2)
+coeftest(inter_lm1, vcov = vcovHAC(inter_lm1)) 
+coeftest(inter_lm2, vcov = vcovHAC(inter_lm2)) 
+# Поки що залишимо обидві, але основну увагу приділимо другій, оскільки вона
+# містить на одну змінну менше.
+
+assumptions_check(lm1) # DW = 0.81964
+assumptions_check(inter_lm1) # DW = 0.92085
+assumptions_check(inter_lm2) # DW = 0.91798
+# Виконуються всі припущення, крім некорельованості.
+
+final_models2[["Євро / Долар"]] <- inter_lm1
+final_models2[["Євро × Долар"]] <- inter_lm2
+
+
+
+#### lm2 ####
+summary(lm2)
+aic_base <- AIC(lm2)
+bic_base <- BIC(lm2)
+
+interactions_result <- observe_best_interactions(lm2, model2_75_df, top_n = 10)
+# 1. Євро / Долар | ΔAIC = 22.49 | p = 0.0000 
+# 2. Євро × Долар | ΔAIC = 21.22 | p = 0.0000 
+# Перші два перетворення не мають сенсу, оскільки отримаємо ті ж моделі, що і при lm1.
+
+# 3. Долар / Євро | ΔAIC = 13.97 | p = 0.0002 
+inter_lm <- update(lm2, . ~ . + I(Долар / Євро))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+inter_lm <- update(inter_lm, . ~ . - I(Долар^2))
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) 
+
+aic_base - AIC(inter_lm) # 10.99282
+bic_base - BIC(inter_lm) # 10.99282
+inter_lm6 <- inter_lm
+# Ця модель слабша за попередні: кількість параметрів та ж, але внесок в AIC/BIC
+# удвічі менший.
+
+names(final_models2)

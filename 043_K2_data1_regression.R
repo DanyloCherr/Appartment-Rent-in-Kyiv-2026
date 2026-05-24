@@ -369,6 +369,4 @@ coeftest(lm3, vcov = vcovHC(lm3, type = "HC3"))
 lm3 <- update(lm3, . ~ . - РівДолар:Євро_Долар, data = model1_26_df_inter) # тепер це попередня модель.
 summary(lm3)
 coeftest(lm3, vcov = vcovHC(lm3, type = "HC3"))
-
-# ВИСНОВОК.
 # ІндМатСтан - не значуща!
