@@ -225,7 +225,7 @@ coeftest(model_full2_26i, vcov = vcovHC(model_full2_26i, type = "HC3"))
 
 
 # ==== 8) ВІДБІР ЗМІННИХ ====
-#### Перша модель (містить Долар)
+#### Перша модель (містить Долар) ####
 all_models <- regsubsets(Ціна ~ Долар + ІФС + ІГР + ЧисНасел + 
                            РівДолар + ІндМатСтан + 
                            sqrt(ІФС) + log(ІГР), 
@@ -240,9 +240,6 @@ lm1 <- update(model_full1_26, . ~ . - ІГР)
 summary(lm1)
 coeftest(lm1, vcov = vcovHC(lm1, type = "HC3"))
 
-# 9. Долар + ІФС + РівДолар + ІндМатСтан + sqrt(ІФС)  | Adj R² = 0.8187 (p = 6) 
-# ПЕРЕВІРИТИ ТАКУ МОДЕЛЬ (ЗВЕРХУ)
-
 lm1 <- update(lm1, . ~ . - sqrt(ІГР)) 
 summary(lm1)
 coeftest(lm1, vcov = vcovHC(lm1, type = "HC3"))
@@ -253,23 +250,35 @@ coeftest(lm1, vcov = vcovHC(lm1, type = "HC3"))
 # Тут ІндМатСтан не є значущою. Модель не має сенсу.
 
 
-
-lm2 <- lm(Ціна ~  ІФС + ІГР + ЧисНасел + РівДолар + ІндМатСтан + Євро_Долар 
-          + sqrt(ІФС) + РівДолар:Євро_Долар, data = model2_26_df_inter)
-summary(lm2)
-coeftest(lm2, vcov = vcovHC(lm2, type = "HC3"))
-
-lm2 <- update(lm2, . ~ . - ІГР, data = model2_26_df_inter) # тепер це попередня модель.
-summary(lm2)
-coeftest(lm2, vcov = vcovHC(lm2, type = "HC3"))
+# 9. Долар + ІФС + РівДолар + ІндМатСтан + sqrt(ІФС)  | Adj R² = 0.8187 (p = 6) 
+# Після вилучення незначущих змінних це попередня модель.
 
 
-lm3 <- lm(Ціна ~ ІФС + РівДолар + ІндМатСтан + Євро_Долар + sqrt(ІФС) + РівДолар:Євро_Долар,
-          data = model2_26_df_inter)
-summary(lm3)
-coeftest(lm3, vcov = vcovHC(lm3, type = "HC3"))
+#### Друга модель (містить Євро/Долар) ####
+all_models <- regsubsets(I(1/Ціна) ~ ІФС + ІГР + ЧисНасел + 
+                           РівДолар + ІндМатСтан + Євро_Долар + 
+                           sqrt(ІФС) + РівДолар:Євро_Долар, data = model2_26_df_inter, nbest = 3)
+best_models <- best_models_summary(all_models, 10)
 
-lm3 <- update(lm3, . ~ . - РівДолар:Євро_Долар, data = model2_26_df_inter) # тепер це попередня модель.
-summary(lm3)
-coeftest(lm3, vcov = vcovHC(lm3, type = "HC3"))
-# ІндМатСтан - не значуща!
+# 1.2.1 Повна модель.
+lm1 <- model_full2_26i
+summary(lm1)
+coeftest(lm1, vcov = vcovHC(lm1, type = "HC3"))
+
+lm1 <- update(lm1, . ~ . - ІГР)
+summary(lm1)
+coeftest(lm1, vcov = vcovHC(lm1, type = "HC3")) # ІндМатСтан - не значуща.
+
+# 5. Повна модель без ІГР та ефекту взаємодії.
+lm1 <- update(lm1, . ~ . - РівДолар:Євро_Долар)
+summary(lm1)
+coeftest(lm1, vcov = vcovHC(lm1, type = "HC3")) # ІндМатСтан - не значуща.
+
+# 8. ІФС + ІГР + ЧисНасел + ІндМатСтан + sqrt(ІФС) + РівДолар:Євро_Долар  | Adj R² = 0.8751 (p = 7)
+lm1 <- lm(formula = I(1/Ціна) ~ ІФС + ІГР + ЧисНасел + ІндМатСтан + sqrt(ІФС) 
+          + РівДолар:Євро_Долар, data = model2_26_df_inter) 
+summary(lm1)
+coeftest(lm1, vcov = vcovHC(lm1, type = "HC3")) # ІндМатСтан - не значуща.
+
+# ВИСНОВОК.
+# Змінна ІндМатСтан не є хорошим предиктором у поясненні Ціни.
