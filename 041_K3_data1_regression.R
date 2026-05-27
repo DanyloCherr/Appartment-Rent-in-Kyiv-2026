@@ -66,6 +66,7 @@ cat("Оптимальне λ:", round(lambda_opt, 2), "\n") # -1.84
 
 model_log3_75 <- lm(I(1/Ціна) ~ ., data = model3_75_df)
 summary(model_log3_75)
+# Чому модель називається "...log..."? :D
 
 
 
@@ -325,9 +326,9 @@ assumptions_check(inter_lm2) # DW = 1.0742
 assumptions_check(inter_lm3) # DW = 1.0305
 # Виконуються всі припущення, крім некорельованості.
 
-final_models2[["8Євро / Долар"]] <- inter_lm1
-final_models2[["8Євро × Долар"]] <- inter_lm2
-final_models2[["8Долар / Євро"]] <- inter_lm3
+final_models3[["8Євро / Долар"]] <- inter_lm1
+final_models3[["8Євро × Долар"]] <- inter_lm2
+final_models3[["8Долар / Євро"]] <- inter_lm3
 
 
 
@@ -393,7 +394,7 @@ assumptions_check(inter_lm1) # DW = 1.1132
 assumptions_check(inter_lm2) # DW = 1.1042
 # Виконуються всі припущення, крім некорельованості.
 
-final_models2[["6Євро / РівДолар"]] <- inter_lm1
-final_models2[["6РівДолар / Євро"]] <- inter_lm2
+final_models3[["6Євро / РівДолар"]] <- inter_lm1
+final_models3[["6РівДолар / Євро"]] <- inter_lm2
 
-names(final_models2)
+names(final_models3)

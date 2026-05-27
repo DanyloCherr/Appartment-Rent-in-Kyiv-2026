@@ -213,7 +213,13 @@ plot_model_df <- function(full_period, model_df, points = NULL){
 }
 
 
-av_plots <- function(model){
+av_plots <- function(model, exclude = NULL){
+  predictors <- attr(terms(model), "term.labels")
+  if(!is.null(exclude)){
+    predictors <- predictors[!grepl(exclude, predictors)]
+  }
+  # Поки що забудемо про виведення графіків для індикаторних змінних.
+  # Повернемося сюди пізніше.
   avPlots(model, 
           col = "steelblue", 
           pch = 19,

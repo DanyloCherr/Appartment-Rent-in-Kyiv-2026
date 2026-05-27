@@ -17,9 +17,11 @@ source(get_R_name("02_data_validation"), echo = !(is_markdown))
 source(get_R_name("03_data_vizualization"), echo = !(is_markdown))
 source(get_R_name("04_data1_regression"), echo = !(is_markdown))
 source(get_R_name("041_K1_data1_regression"), echo = !(is_markdown))
-source(get_R_name("042_K1_data1_regression"), echo = !(is_markdown))
-source(get_R_name("043_K1_data1_regression"), echo = !(is_markdown))
+# source(get_R_name("042_K1_data1_regression"), echo = !(is_markdown))
+# source(get_R_name("043_K1_data1_regression"), echo = !(is_markdown))
 source(get_R_name("041_K2_data1_regression"), echo = !(is_markdown))
+source(get_R_name("041_K3_data1_regression"), echo = !(is_markdown))
+
 
 dev.off()
 
