@@ -21,6 +21,7 @@ source(get_R_name("041_K1_data1_regression"), echo = !(is_markdown))
 # source(get_R_name("043_K1_data1_regression"), echo = !(is_markdown))
 source(get_R_name("041_K2_data1_regression"), echo = !(is_markdown))
 source(get_R_name("041_K3_data1_regression"), echo = !(is_markdown))
+source(get_R_name("041_ind_data1_regression"), echo = !(is_markdown))
 
 
 dev.off()

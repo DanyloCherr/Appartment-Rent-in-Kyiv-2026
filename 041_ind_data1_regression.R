@@ -418,7 +418,7 @@ rho <- cor(e[-1], e[-length(e)])
 
 all_models <- regsubsets(formula(model_Sqrt_75_Lg3Sq), 
                          data = df_long, nbest = 3, nvmax = 15)
-best_models <- best_models_summary(all_models, 15)
+best_models <- best_models_summary(all_models, 20)
 # Для панельних даних дисперсія сигма є заниженою, а тому Cp є завищеним, 
 # проте не обов'язково ближчим до p. Отже, Cp не є інформативним показником
 # якості моделі для панельних даних.
@@ -455,7 +455,8 @@ lm2 <- update(lm2, . ~ . - РівДолар)
 summary(lm2, vcov = "DK")
 # Та сама модель.
 
-# 8. Євро + Долар + ІЦБ + ЧисНасел + Кімнатність2 + Кімнатність3 + log(Долар) + log(РівДолар) + log(Євро) + I(Долар^2)  | Adj R² = 0.9174 (p = 11)
+
+# -8. Євро + Долар + ІЦБ + ЧисНасел + Кімнатність2 + Кімнатність3 + log(Долар) + log(РівДолар) + log(Євро) + I(Долар^2)  | Adj R² = 0.9174 (p = 11)
 lm2 <- update(model_feols, . ~ . - ІГР - РівДолар - ІФС)
 summary(lm2, vcov = "DK")
 
@@ -466,7 +467,76 @@ lm2 <- update(lm2, . ~ . - ІЦБ)
 summary(lm2, vcov = "DK")
 
 lm2 <- update(lm2, . ~ . - ЧисНасел)
-summary(lm2, vcov = "DK")
-# Виглядає класно. Знайдемо цю модель в таблиці потім.
+summary(lm2, vcov = "DK") # Виглядає дуже ергономічно. Залишимо.
 
 
+# -9. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + Кімнатність2 + Кімнатність3 + log(РівДолар) + log(Євро) + I(Долар^2)  | Adj R² = 0.9172 (p = 11)
+lm3 <- update(model_feols, . ~ . - ІГР - log(Долар) - ІФС)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - РівДолар)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - ІЦБ)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - ЧисНасел)
+summary(lm3, vcov = "DK") # Та сама модель.
+
+
+# -10. Євро + ІЦБ + ЧисНасел + РівДолар + Кімнатність2 + Кімнатність3 + log(Долар) + log(РівДолар) + log(Євро) + I(Долар^2)  | Adj R² = 0.9168 (p = 11)
+lm3 <- update(model_feols, . ~ . - ІГР - Долар - ІФС)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - РівДолар)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - ІЦБ)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - ЧисНасел)
+summary(lm3, vcov = "DK") # Та ж модель, але з log(Долар) замість Долар.
+
+
+# 16. Євро + Долар + ЧисНасел + Кімнатність2 + Кімнатність3 + log(Долар) + log(РівДолар) + log(Євро)  | Adj R² = 0.9090 (p = 9)
+lm3 <- feols(sqrt(Ціна) ~ Євро + Долар + ЧисНасел + Кімнатність + log(Долар) + log(РівДолар) + log(Євро),
+             data = df_long_date, panel.id = ~ Кімнатність + Дата)
+summary(lm3, vcov = "DK")
+
+lm3 <- update(lm3, . ~ . - ЧисНасел)
+summary(lm3, vcov = "DK") # Це модель №8, але з логарифмом замість квадрата (виберемо її замість квадрата).
+
+
+# 20. Євро + ІЦБ + ЧисНасел + Кімнатність2 + Кімнатність3 + log(РівДолар)  | Adj R² = 0.8945 (p = 7)
+lm4 <- feols(sqrt(Ціна) ~ Євро + ІЦБ + ЧисНасел + Кімнатність + log(РівДолар),
+             data = df_long_date, panel.id = ~ Кімнатність + Дата)
+summary(lm4, vcov = "DK")
+
+lm4 <- update(lm4, . ~ . - ІЦБ)
+summary(lm4, vcov = "DK")
+
+lm4 <- update(lm4, . ~ . - Євро)
+summary(lm4, vcov = "DK")
+
+lm4 <- update(lm4, . ~ . + РівДолар - log(РівДолар))
+summary(lm4, vcov = "DK") # Це одна з вибраних моделей для 1-кімнатних квартир. Залишимо.
+
+final_models = list("9_var" = lm1, "7_var" = lm3, "4_var" = lm4)
+
+
+# ======== 7) ЕФЕКТИ ВЗАЄМОДІЇ ========
+# Працюємо із трьома моделями.
+lm1 <- final_models[[1]]
+lm2 <- final_models[[2]]
+lm3 <- final_models[[3]]
+
+
+#### lm1 ####
+lm1 <- update(lm1, . ~ . - I(I(I(I(I(I(Долар^2))))))  + Долар^2)
+
+
+aic_base <- AIC(lm1)
+bic_base <- BIC(lm1)
+
+lm1_lmcl <- lm(formula(lm1), data = df_long)
+interactions_result <- observe_best_interactions(lm1_lmcl, df_long_date, top_n = 10)

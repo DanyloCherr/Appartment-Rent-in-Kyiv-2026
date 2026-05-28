@@ -475,6 +475,57 @@ observe_best_interactions <- function(model, data, top_n = 5){
 }
 
 
+factor_level_interactions <- function(model, data, factor_var = "Кімнатність", top_n = 10) {
+  
+  # Числові предиктори (без функцій)
+  predictors <- attr(terms(model), "term.labels")
+  predictors <- predictors[!grepl("\\^|log\\(|sqrt\\(|I\\(", predictors)]
+  factor_vars <- names(data)[sapply(data, is.factor)]
+  numeric_preds <- setdiff(predictors, factor_vars)
+  
+  results <- data.frame(
+    interaction = character(),
+    AIC = numeric(),
+    delta_AIC = numeric(),
+    stringsAsFactors = FALSE
+  )
+  base_AIC <- AIC(model)
+  
+  for (pred in numeric_preds) {
+    formula_int <- as.formula(paste(". ~ . +", pred, "*", factor_var))
+    model_int <- try(update(model, formula_int), silent = TRUE)
+    
+    if (!inherits(model_int, "try-error")) {
+      aic_int <- AIC(model_int)
+      results <- rbind(results, data.frame(
+        interaction = paste(pred, "×", factor_var),
+        AIC = aic_int,
+        delta_AIC = base_AIC - aic_int
+      ))
+    }
+  }
+  
+  results <- results[order(-results$delta_AIC), ]
+  
+  cat("\n========== Взаємодії з", factor_var, "==========\n")
+  for (i in 1:min(top_n, nrow(results))) {
+    r <- results[i, ]
+    cat(sprintf("%d. %s | ΔAIC = %.2f\n", i, r$interaction, r$delta_AIC))
+  }
+  
+  # Показати деталі для найкращої
+  if (nrow(results) > 0) {
+    best_pred <- strsplit(results$interaction[1], " × ")[[1]][1]
+    formula_best <- as.formula(paste(". ~ . +", best_pred, "*", factor_var))
+    model_best <- update(model, formula_best)
+    cat("\n--- Деталі для найкращої взаємодії ---\n")
+    print(summary(model_best))
+  }
+  
+  invisible(results)
+}
+
+
 gls_dwtest <- function(gls_model){
   e <- residuals(gls_model, type = "normalized")
   # type = "normalized" - витягти залишки після домноження рівняння на К^-1
