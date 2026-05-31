@@ -1,486 +1,2642 @@
-[1] "D:/R/R projects/Appartment Rent in Kyiv 2026/Appartment-Rent-in-Kyiv-2026/01_import.R"
+[1] "D:/R/R projects/Appartment Rent in Kyiv 2026/Appartment-Rent-in-Kyiv-2026/044(q)_ind_data1_regression.R"
+
+> # ----- 20 СПОСТЕРЕЖЕНЬ -----
+> model_20q_df_date <- model_df_20q[, !names(model_df_20q) %in% c("Ч", "РівДолар")]
+
+> df_longq_dateq <- model_20q_df_date %>%
++   pivot_longer(cols = c(К1, К2, К3), 
++                names_to = "Кімнатність", 
++                values_ .... [TRUNCATED] 
+
+> model_20q_df <- model_20q_df_date[, -1]
+
+> df_longq <- df_longq_dateq[, -1]
+
+> # ==== 1) ПОВНА МОДЕЛЬ ====
+> model_full_20q <- lm(Ціна ~ ., data = df_longq)
+
+> summary(model_full_20q)
+
+Call:
+lm(formula = Ціна ~ ., data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2534.9  -774.8  -167.0   742.0  3455.5 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -3.041e+05  6.735e+04  -4.515 3.99e-05 ***
+Євро         -7.090e+02  2.743e+02  -2.585  0.01276 *  
+Долар         7.491e+02  3.677e+02   2.037  0.04703 *  
+ІФС          -4.492e+03  1.748e+04  -0.257  0.79827    
+ІГР          -1.157e+03  1.802e+03  -0.642  0.52360    
+ІЦБ           2.187e+02  4.223e+01   5.178 4.19e-06 ***
+ЧисНасел      8.031e-02  2.303e-02   3.488  0.00104 ** 
+ІЦЖВ          2.787e+02  1.358e+02   2.052  0.04553 *  
+ІЦЖП          2.204e+02  2.330e+02   0.946  0.34897    
+Кімнатність2  3.155e+03  3.755e+02   8.403 4.66e-11 ***
+Кімнатність3  7.261e+03  3.755e+02  19.336  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1187 on 49 degrees of freedom
+Multiple R-squared:  0.9171,	Adjusted R-squared:  0.9002 
+F-statistic: 54.22 on 10 and 49 DF,  p-value: < 2.2e-16
+
+
+> # ==== 2) АНАЛІЗ ЗАЛИШКІВ І ВИЯВЛЕННЯ ВИКИДІВ ====
+> residuals_plot(model_full_20q)
+
+> residuals_regressors_plot(model_full_20q, c(2, 4), type = "rstudent")
+
+> cooks_dist(model_full_20q)
+Відстань Кука 
+        60         57         58         18         42         24         23          9         59         54 
+0.45464886 0.19030191 0.15507820 0.11175387 0.04530892 0.04205385 0.03993280 0.03952062 0.03431666 0.03238760 
+Порогове значення: 0.08163265 
+Впливові точки: 18 57 58 60 
+
+
+> df_fits(model_full_20q)
+|DFFITS| 
+       60        57        58        18        42        24        23         9        59        54 
+2.5470884 1.5198638 1.3503088 1.1655319 0.7166047 0.6846401 0.6665736 0.6612165 0.6137936 0.6015764 
+Порогове значення: 0.8563488 
+Впливові точки: 18 57 58 60 
+ 
+
+> df_betas(model_full_20q)
+|DFBETAS| 
+Порогове значення: 0.2581989 
+---- (Intercept) ----
+       18         9         7        57         8        17        58        42        16        39 
+0.4206094 0.4074096 0.3396322 0.3156498 0.2322487 0.2153063 0.1888851 0.1827412 0.1704560 0.1193442 
+Впливові точки: 7 9 18 57 
+---- Євро ----
+        9         7        58         8        42         2        41        59        18        55 
+0.4341783 0.3609243 0.2698125 0.2475085 0.2316165 0.1730620 0.1308073 0.1226454 0.1209022 0.1100439 
+Впливові точки: 7 9 58 
+---- Долар ----
+        60         57         20         18         54         21         14         52         15         17 
+0.41845350 0.37130898 0.19148150 0.18833267 0.18122193 0.15819263 0.10860571 0.09948733 0.09734413 0.09640583 
+Впливові точки: 57 60 
+---- ІФС ----
+        9        18         7        24        23         8        58        17        16         2 
+0.3932246 0.3371214 0.3268803 0.3226749 0.3141601 0.2241624 0.2084084 0.1725695 0.1374108 0.1013450 
+Впливові точки: 7 9 18 23 24 
+---- ІГР ----
+       60        18         9         7        55        24        23        42         8        17 
+0.7531717 0.3200686 0.2899835 0.2410579 0.2204340 0.2105150 0.2049599 0.1932161 0.1653085 0.1638403 
+Впливові точки: 9 18 60 
+---- ІЦБ ----
+       60        20        21        51        54        24        23        19        52        42 
+0.6024984 0.2988424 0.2468889 0.2385070 0.2364673 0.2346332 0.2284416 0.1409774 0.1298160 0.1183777 
+Впливові точки: 20 60 
+---- ЧисНасел ----
+       24        23        60         5        46        20        43        21        47        55 
+0.2271065 0.2211135 0.2074808 0.1933522 0.1876058 0.1656834 0.1418710 0.1368795 0.1251959 0.1226856 
+Впливові точки:  
+---- ІЦЖВ ----
+       18        42        17        16         9         7        41        24        23        32 
+0.4164786 0.2458781 0.2131917 0.1697568 0.1680094 0.1396631 0.1388616 0.1232357 0.1199837 0.1117529 
+Впливові точки: 18 
+---- ІЦЖП ----
+        57         60         27         20         30         25         21         26         54         56 
+0.76005900 0.29307037 0.26082725 0.17918180 0.16298095 0.14843579 0.14803122 0.14556432 0.12505364 0.09480073 
+Впливові точки: 27 57 60 
+---- Кімнатність2 ----
+       58        20        23        32        16        47        35        52         8        44 
+0.3936277 0.2581217 0.2240933 0.1926460 0.1765820 0.1456585 0.1430365 0.1268701 0.1181002 0.1128758 
+Впливові точки: 58 
+---- Кімнатність3 ----
+       60        57        58        24        21         9        16        52        12        55 
+0.7425002 0.4577563 0.3936277 0.2301671 0.2132475 0.2071708 0.1765820 0.1268701 0.1135193 0.1040889 
+Впливові точки: 57 58 60 
 
-> library(rio)
+ Всі впливові точки: 7 9 18 20 23 24 27 57 58 60
+> # ==== 3) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ ====
+> # ЛІНІЙНІСТЬ
+> plot(model_full_20q, which = 1)
 
-> library(lubridate)
+> # Зі збільшенням прогнозованих значень крива сильніше відхиляється від нуля.
+> 
+> av_plots(model_full_20q)
 
-> library(dplyr)
+> crPlots(model_full_20q) # ІГР - ?
 
-> get_csv_name <- function(filename){
-+   dir <- paste0(here(),"/Data", "/", filename, ".csv")
-+   return(dir)
-+ }
+> par(mfrow = c(1, 1))
 
-> importf <- function(filename, date_format){
-+   table <- import(get_csv_name(filename))
-+   
-+   # При виконанні source() функція перший елемент мож .... [TRUNCATED] 
+> resettest(model_full_20q, power = 2) # p-value = 0.01387
 
-> # ---Курс євро---
-> EUR <- importf("EUR", "%d.%m.%Y")
+	RESET test
 
-> # Видалимо зайві (порожні) стовпці та встановимо коректний заголовок
-> EUR <- EUR[-1, -c(3,4)]
+data:  model_full_20q
+RESET = 6.5239, df1 = 1, df2 = 48, p-value = 0.01387
 
-> colnames(EUR) <- c("Дата", "Євро")
 
-> # Після видалення рядка змістимо нумерацію рядків, щоб номери йшли підряд від 1
-> rownames(EUR) <- NULL
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_full_20q, which = 3)
 
-> # ---Курс долара, кімнатність---
-> MULTIROOM <- importf("Price, dollar", "%d.%m.%y")
+> # Зі збільшенням прогнозованих значень дисперсія трохи зростає.
+> 
+> residuals_regressors_plot(model_full_20q, c(2, 4), type = "rstudent")
 
-> # colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
-> # На жаль, "Курс долара" містить більше сотні пропусків, тому завантажимо дані від Н .... [TRUNCATED] 
+> # ІГР - ?
+> 
+> bptest(model_full_20q) # p-value = 0.00277
 
-> colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
+	studentized Breusch-Pagan test
 
-> # ---Курс долара---
-> USD <- importf("USD", "%d.%m.%Y")
+data:  model_full_20q
+BP = 26.83, df = 10, p-value = 0.00277
 
-> USD[USD$`Кількість одиниць` == 100, 7] <- round(USD[USD$`Кількість одиниць` == 100, 7] / 100, 2)
 
-> USD <- USD[, c(1, 7)]
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_full_20q) ~ df_longq$Кімнатність) # p-value = 0.02926
 
-> colnames(USD) <- c("Дата", "Долар")
+	Bartlett test of homogeneity of variances
 
-> # ---1-кімнатні квартири---
-> SGLROOM <- MULTIROOM[, c(1, 2)]
+data:  residuals(model_full_20q) by df_longq$Кімнатність
+Bartlett's K-squared = 7.0627, df = 2, p-value = 0.02926
 
-> colnames(SGLROOM)[2] <- "Ціна"
 
-> # ---2-кімнатні квартири---
-> DBLROOM <- MULTIROOM[, c(1, 3)]
+> leveneTest(residuals(model_full_20q) ~ df_longq$Кімнатність) # p-value = 0.09165   
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  2.4928 0.09165 .
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> colnames(DBLROOM)[2] <- "Ціна"
+> # Гетероскедастичність!
+> 
+> 
+> bc <- boxcox(model_full_20q, lambda = seq(0, 1, by = 0.1))
 
-> # ---3-кімнатні квартири---
-> TRPROOM <- MULTIROOM[, c(1, 4)]
+> lambda_opt <- bc$x[which.max(bc$y)]
 
-> colnames(TRPROOM)[2] <- "Ціна"
+> cat("Оптимальне λ:", round(lambda_opt, 2), "\n") # 0.32 
+Оптимальне λ: 0.32 
 
-> # ---Активність на ринку житла---
-> ACTIVITY <- importf("Активність на ринку житла", "%d.%m.%Y")
+> # ДІ містить 0.5 - візьмемо його.
+> 
+> model_Sqrt_20q <- lm(sqrt(Ціна) ~ ., data = df_longq)
 
-> colnames(ACTIVITY)[2] <- "Активність"
+> summary(model_Sqrt_20q)
 
-> # ---Боргове навантаження домогосподарств---
-> HH_DEBT_BURDEN <- importf("Боргове навантаження домогосподарств", "%d.%m.%Y")
+Call:
+lm(formula = sqrt(Ціна) ~ ., data = df_longq)
 
-> colnames(HH_DEBT_BURDEN)[2] <- "БоргНавантаж"
+Residuals:
+   Min     1Q Median     3Q    Max 
+-9.652 -3.522 -0.256  3.476  9.801 
 
-> # ---Введення в експлуатацію житла---
-> HOUSING_COMPLETIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.427e+03  2.755e+02  -5.178 4.19e-06 ***
+Євро         -2.746e+00  1.122e+00  -2.448   0.0180 *  
+Долар         2.901e+00  1.504e+00   1.929   0.0595 .  
+ІФС          -7.457e+00  7.150e+01  -0.104   0.9174    
+ІГР          -5.339e+00  7.370e+00  -0.724   0.4723    
+ІЦБ           9.799e-01  1.727e-01   5.673 7.43e-07 ***
+ЧисНасел      4.087e-04  9.419e-05   4.339 7.13e-05 ***
+ІЦЖВ          1.367e+00  5.555e-01   2.462   0.0174 *  
+ІЦЖП          6.097e-01  9.533e-01   0.640   0.5254    
+Кімнатність2  1.548e+01  1.536e+00  10.077 1.56e-13 ***
+Кімнатність3  3.283e+01  1.536e+00  21.374  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> colnames(HOUSING_COMPLETIONS)[2] <- "ВведЖитла"
+Residual standard error: 4.857 on 49 degrees of freedom
+Multiple R-squared:  0.931,	Adjusted R-squared:  0.9169 
+F-statistic: 66.13 on 10 and 49 DF,  p-value: < 2.2e-16
 
-> # ---Індекс геополітичних ризиків---
-> GPR_INDEX <- importf("Індекс геополітичних ризиків", "%d.%m.%Y")
 
-> colnames(GPR_INDEX)[2] <- "ІГР"
+> # ======== НОВА МОДЕЛЬ 1 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q, which = 1)
 
-> # ---Індекс фінансового стресу---
-> FS_INDEX <- importf("Індекс фінансового стресу", "%d.%m.%Y")
+> residuals_plot(model_Sqrt_20q) # Трохи рівномірніше.
 
-> colnames(FS_INDEX)[2] <- "ІФС"
+> residuals_regressors_plot(model_Sqrt_20q, c(2, 4), type = "rstudent")
 
-> # ---Індекс цін на житло на вторинному ринку---
-> SECOND_HAND_HPRICE_INDEX <- importf("Індекс цін на житло на вторинному ринку", "%Y-%m-%d")
+> av_plots(model_Sqrt_20q)
 
-> colnames(SECOND_HAND_HPRICE_INDEX) <- c("Дата", "ІЦЖВ")
+> crPlots(model_Sqrt_20q) 
 
-> # ---Індекс цін на житло на первинному ринку---
-> NEW_HPRICE_INDEX <- importf("Індекс цін на житло на первинному ринку", "%Y-%m-%d")
+> par(mfrow = c(1, 1))
 
-> colnames(NEW_HPRICE_INDEX) <- c("Дата", "ІЦЖП")
+> resettest(model_Sqrt_20q, power = 2) # p-value = 0.827
 
-> # ---Індекс цін у будівництві---
-> CP_INDEX <- importf("Індекс цін у будівництві", "%d.%m.%Y")
+	RESET test
 
-> colnames(CP_INDEX) <- c("Дата", "ІЦБ")
+data:  model_Sqrt_20q
+RESET = 0.048291, df1 = 1, df2 = 48, p-value = 0.827
 
-> # ---Обсяг чистих гривневих кредитів---
-> NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів", "%d.%m.%Y")
 
-> colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q, which = 3) 
 
-> NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
+> bptest(model_Sqrt_20q) # p-value = 0.02547
 
-> # ---Оцінка доходів населення---
-> HH_INCOME_ESTIMATE <- importf("Оцінка доходів населення", "%d.%m.%Y")
+	studentized Breusch-Pagan test
 
-> colnames(HH_INCOME_ESTIMATE) <- c("Дата", "ОцінкаДоходів")
+data:  model_Sqrt_20q
+BP = 20.426, df = 10, p-value = 0.02547
 
-> # ---Рівень доларизації коштів фізосіб і бізнесу---
-> # Вимірюється у відсотках!
-> DOLLARIZATION_LEVEL <- importf("Рівень доларизації коштів фізосіб ..." ... [TRUNCATED] 
 
-> colnames(DOLLARIZATION_LEVEL) <- c("Дата", "РівДолар")
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q) ~ df_longq$Кімнатність) # p-value = 0.2218
 
-> DOLLARIZATION_LEVEL <- DOLLARIZATION_LEVEL[-1, -3]
+	Bartlett test of homogeneity of variances
 
-> rownames(DOLLARIZATION_LEVEL) <- NULL
+data:  residuals(model_Sqrt_20q) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0119, df = 2, p-value = 0.2218
 
-> # ---Річні темпи зміни коштів фізосіб---
-> # Вимірюється у відсотках!
-> HH_DEPOSITS_ANNUAL_GROWTH <- importf("Річні темпи зміни коштів фізосіб", "%d ..." ... [TRUNCATED] 
 
-> colnames(HH_DEPOSITS_ANNUAL_GROWTH) <- c("Дата", "ТемпЗмінКошт")
+> leveneTest(residuals(model_Sqrt_20q) ~ df_longq$Кімнатність) # p-value = 0.2109  
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value Pr(>F)
+group  2  1.5998 0.2109
+      57               
 
-> HH_DEPOSITS_ANNUAL_GROWTH <- HH_DEPOSITS_ANNUAL_GROWTH[-1, c(1,2)]
+> # БП-тест міг провалитися через сильну гетероскедастичність між групами.
+> 
+> 
+> # Над категоріальними змінними ФП не застосовуємо.
+> all_preds <- n .... [TRUNCATED] 
 
-> rownames(HH_DEPOSITS_ANNUAL_GROWTH) <- NULL
+> numeric_preds <- all_preds[!grepl("Кімнатність", all_preds)]
 
-> HH_DEPOSITS_ANNUAL_GROWTH[[1]] <- floor_date(HH_DEPOSITS_ANNUAL_GROWTH[[1]], "month")
+> observe_transforms_x(model_Sqrt_20q, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     371.7817 371.7385 373.7230 371.8897 373.7640 371.6777 373.6576 371.7054 373.7039
+Долар    371.7817 372.0255 364.0906 371.2692 363.8936 372.7055 364.3064 372.2608 364.1605
+ІФС      371.7817 371.5749 367.4551 371.5944 369.1318 369.7250 367.0221 371.1052 367.1087
+ІГР      371.7817 372.1650 372.0265 371.4120 373.2975 372.0759 370.7945 372.4024 371.5345
+ІЦБ      371.7817 371.5158 367.9940 372.3348 367.4739 370.7680 368.4831 371.2578 368.1606
+ЧисНасел 371.7817 371.7719 370.7683 371.8013 370.7606 371.7426 370.7760 371.7621 370.7709
+ІЦЖВ     371.7817 371.7547 373.5482 371.8338 373.5950 371.6713 373.4987 371.7273 373.5320
+ІЦЖП     371.7817 371.7684 373.1516 371.8055 373.2187 371.7233 373.0843 371.7543 373.1292
 
-> # ---Розмір компенсації від держави---
-> # Вимірюється у відсотках!
-> # Таблиця містить дві величини
-> STATE_COMPENS_AMOUNT <- importf("Розмір компе ..." ... [TRUNCATED] 
+$AIC_diffs
+         linear         sqrt      +sqrt      square   +square     inverse   +inverse         log       +log
+Євро          0  0.043125914 -1.9412970 -0.10809027 -1.982358  0.10396452 -1.8759871  0.07620806 -1.9222097
+Долар         0 -0.243843899  7.6910529  0.51250095  7.888068 -0.92386122  7.4752938 -0.47917393  7.6211114
+ІФС           0  0.206708346  4.3265369  0.18723150  2.649892  2.05667484  4.7595682  0.67643521  4.6729373
+ІГР           0 -0.383383423 -0.2448135  0.36969547 -1.515888 -0.29423366  0.9871856 -0.62074173  0.2471591
+ІЦБ           0  0.265870296  3.7876623 -0.55319497  4.307798  1.01366329  3.2985637  0.52383396  3.6210600
+ЧисНасел      0  0.009794337  1.0133690 -0.01966798  1.021065  0.03901777  1.0056330  0.01956213  1.0107948
+ІЦЖВ          0  0.026932994 -1.7665442 -0.05218384 -1.813358  0.11032274 -1.7170818  0.05434190 -1.7503177
+ІЦЖП          0  0.013204233 -1.3699637 -0.02384716 -1.437030  0.05835358 -1.3026700  0.02730792 -1.3475282
 
-> STATE_COMPENS_AMOUNT <- STATE_COMPENS_AMOUNT[-1, -2]
 
-> colnames(STATE_COMPENS_AMOUNT) <- c("Дата", "КредПортфель", "НовіКредити")
+> model_Sqrt_20q_Lg <- update(model_Sqrt_20q, . ~ . + log(Долар))
 
-> STOCK <- STATE_COMPENS_AMOUNT[, c(1, 2)]
+> # AIC_diff = 7.6211114
+> summary(model_Sqrt_20q_Lg)
 
-> FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар), data = df_longq)
 
-> # ---Споживчі настрої домогосподарств---
-> CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.9119 -3.2537 -0.5524  3.1622 10.3616 
 
-> colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   5.196e+03  2.307e+03   2.253 0.028875 *  
+Євро         -3.983e+00  1.130e+00  -3.524 0.000946 ***
+Долар         1.086e+02  3.660e+01   2.967 0.004684 ** 
+ІФС          -3.736e+01  6.747e+01  -0.554 0.582376    
+ІГР          -1.148e+01  7.194e+00  -1.596 0.117160    
+ІЦБ           1.039e+00  1.624e-01   6.400 6.11e-08 ***
+ЧисНасел      2.426e-04  1.050e-04   2.311 0.025196 *  
+ІЦЖВ          1.337e+00  5.181e-01   2.581 0.012968 *  
+ІЦЖП          1.407e+00  9.308e-01   1.512 0.137195    
+Кімнатність2  1.548e+01  1.432e+00  10.806 1.88e-14 ***
+Кімнатність3  3.283e+01  1.432e+00  22.921  < 2e-16 ***
+log(Долар)   -2.741e+03  9.488e+02  -2.889 0.005778 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> CONSUMER_CONFIDENCE[[1]] <- floor_date(CONSUMER_CONFIDENCE[[1]], "month")
+Residual standard error: 4.53 on 48 degrees of freedom
+Multiple R-squared:  0.9412,	Adjusted R-squared:  0.9278 
+F-statistic: 69.89 on 11 and 48 DF,  p-value: < 2.2e-16
 
-> # ---Чисельність населення---
-> POPULATION <- importf("Чисельність населення", "%d.%m.%Y")
 
-> colnames(POPULATION) <- c("Дата", "ЧисНасел") 
+> # ======== НОВА МОДЕЛЬ 2 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg, which = 1) 
 
-> # Хоч спостереження чисельності населення і записані як щоденні, проте їх значення 
-> # є однаковими для всіх днів місяця. Тобто дані оцінюються щом .... [TRUNCATED] 
-[1] "D:/R/R projects/Appartment Rent in Kyiv 2026/Appartment-Rent-in-Kyiv-2026/01_import.R"
+> residuals_plot(model_Sqrt_20q_Lg)
 
-> library(rio)
+> residuals_regressors_plot(model_Sqrt_20q_Lg, c(2, 4), type = "rstudent")
 
-> library(lubridate)
+> av_plots(model_Sqrt_20q_Lg)
 
-> library(dplyr)
+> crPlots(model_Sqrt_20q_Lg) # ІФС - дуга.
 
-> get_csv_name <- function(filename){
-+   dir <- paste0(here(),"/Data", "/", filename, ".csv")
-+   return(dir)
-+ }
+> par(mfrow = c(1, 1))
 
-> importf <- function(filename, date_format){
-+   table <- import(get_csv_name(filename))
-+   
-+   # При виконанні source() функція перший елемент мож .... [TRUNCATED] 
+> resettest(model_Sqrt_20q_Lg, power = 2) # p-value = 0.6533
 
-> # ---Курс євро---
-> EUR <- importf("EUR", "%d.%m.%Y")
+	RESET test
 
-> # Видалимо зайві (порожні) стовпці та встановимо коректний заголовок
-> EUR <- EUR[-1, -c(3,4)]
+data:  model_Sqrt_20q_Lg
+RESET = 0.20443, df1 = 1, df2 = 47, p-value = 0.6533
 
-> colnames(EUR) <- c("Дата", "Євро")
 
-> # Після видалення рядка змістимо нумерацію рядків, щоб номери йшли підряд від 1
-> rownames(EUR) <- NULL
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg, which = 3)
 
-> # ---Курс долара, кімнатність---
-> MULTIROOM <- importf("Price, dollar", "%d.%m.%y")
+> bptest(model_Sqrt_20q_Lg) # p-value = 0.1501
 
-> # colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
-> # На жаль, "Курс долара" містить більше сотні пропусків, тому завантажимо дані від Н .... [TRUNCATED] 
+	studentized Breusch-Pagan test
 
-> colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
+data:  model_Sqrt_20q_Lg
+BP = 15.765, df = 11, p-value = 0.1501
 
-> # ---Курс долара---
-> USD <- importf("USD", "%d.%m.%Y")
 
-> USD[USD$`Кількість одиниць` == 100, 7] <- round(USD[USD$`Кількість одиниць` == 100, 7] / 100, 2)
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg) ~ df_longq$Кімнатність) # p-value = 0.2131
 
-> USD <- USD[, c(1, 7)]
+	Bartlett test of homogeneity of variances
 
-> colnames(USD) <- c("Дата", "Долар")
+data:  residuals(model_Sqrt_20q_Lg) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0917, df = 2, p-value = 0.2131
 
-> # ---1-кімнатні квартири---
-> SGLROOM <- MULTIROOM[, c(1, 2)]
 
-> colnames(SGLROOM)[2] <- "Ціна"
+> leveneTest(residuals(model_Sqrt_20q_Lg) ~ df_longq$Кімнатність) # p-value = 0.3817   
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value Pr(>F)
+group  2  0.9796 0.3817
+      57               
 
-> # ---2-кімнатні квартири---
-> DBLROOM <- MULTIROOM[, c(1, 3)]
+> observe_transforms_x(model_Sqrt_20q_Lg, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     364.1605 364.9871 350.4250 362.4514 350.4315 367.3118 350.4302 365.7898 350.4252
+Долар    364.1605 364.2348 364.8274 364.0188 364.8616 364.4697 364.7933 372.2608 364.1605
+ІФС      364.1605 363.6016 359.8508 364.5409 360.1764 361.7326 361.1622 362.8932 360.1057
+ІГР      364.1605 364.6898 365.8755 364.6441 366.1597 366.9263 365.3440 365.5494 365.6775
+ІЦБ      364.1605 363.9583 363.3904 364.6056 362.9467 363.4414 363.7983 363.7705 363.5304
+ЧисНасел 364.1605 364.1552 363.9791 364.1712 363.9813 364.1392 363.9769 364.1499 363.9784
+ІЦЖВ     364.1605 364.0757 363.9904 364.3264 364.1301 363.8142 363.8567 363.9896 363.9452
+ІЦЖП     364.1605 364.0832 362.2538 364.3024 362.5289 363.8236 361.9845 364.0014 362.1633
 
-> colnames(DBLROOM)[2] <- "Ціна"
+$AIC_diffs
+         linear         sqrt      +sqrt      square     +square     inverse   +inverse         log
+Євро          0 -0.826566102 13.7355531  1.70915538 13.72907827 -3.15124997 13.7303020 -1.62928303
+Долар         0 -0.074208152 -0.6668537  0.14175988 -0.70106640 -0.30910889 -0.6327633 -8.10028533
+ІФС           0  0.558991003  4.3097230 -0.38038542  3.98415947  2.42790167  2.9983722  1.26729743
+ІГР           0 -0.529218602 -1.7149845 -0.48352676 -1.99915072 -2.76576231 -1.1834754 -1.38887090
+ІЦБ           0  0.202266699  0.7701651 -0.44506003  1.21384037  0.71912911  0.3622872  0.39003724
+ЧисНасел      0  0.005336381  0.1814639 -0.01068586  0.17925803  0.02131859  0.1836249  0.01066832
+ІЦЖВ          0  0.084891524  0.1700939 -0.16587636  0.03039415  0.34634060  0.3038766  0.17097277
+ІЦЖП          0  0.077324296  1.9067616 -0.14189801  1.63161465  0.33694686  2.1760546  0.15913623
+                  +log
+Євро      1.373534e+01
+Долар     2.842171e-13
+ІФС       4.054852e+00
+ІГР      -1.516920e+00
+ІЦБ       6.301090e-01
+ЧисНасел  1.821892e-01
+ІЦЖВ      2.153633e-01
+ІЦЖП      1.997268e+00
 
-> # ---3-кімнатні квартири---
-> TRPROOM <- MULTIROOM[, c(1, 4)]
 
-> colnames(TRPROOM)[2] <- "Ціна"
+> model_Sqrt_20q_Lg2 <- update(model_Sqrt_20q_Lg, . ~ . + log(Євро))
 
-> # ---Активність на ринку житла---
-> ACTIVITY <- importf("Активність на ринку житла", "%d.%m.%Y")
+> # AIC_diff = 13.73534
+> summary(model_Sqrt_20q_Lg2)
 
-> colnames(ACTIVITY)[2] <- "Активність"
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро), 
+    data = df_longq)
 
-> # ---Боргове навантаження домогосподарств---
-> HH_DEBT_BURDEN <- importf("Боргове навантаження домогосподарств", "%d.%m.%Y")
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.2455 -2.4694 -0.0403  2.4520  9.3849 
 
-> colnames(HH_DEBT_BURDEN)[2] <- "БоргНавантаж"
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.750e+03  2.377e+03   4.101 0.000162 ***
+Євро         -7.075e+01  1.781e+01  -3.972 0.000243 ***
+Долар         2.632e+02  5.242e+01   5.020 7.86e-06 ***
+ІФС          -1.255e+02  6.425e+01  -1.953 0.056798 .  
+ІГР          -1.468e+01  6.433e+00  -2.281 0.027116 *  
+ІЦБ           8.560e-01  1.520e-01   5.632 9.65e-07 ***
+ЧисНасел      2.019e-04  9.368e-05   2.155 0.036302 *  
+ІЦЖВ          8.675e-01  4.760e-01   1.823 0.074742 .  
+ІЦЖП          2.312e+00  8.595e-01   2.690 0.009868 ** 
+Кімнатність2  1.548e+01  1.270e+00  12.192 3.68e-16 ***
+Кімнатність3  3.283e+01  1.270e+00  25.859  < 2e-16 ***
+log(Долар)   -6.863e+03  1.383e+03  -4.962 9.55e-06 ***
+log(Євро)     2.046e+03  5.450e+02   3.754 0.000478 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> # ---Введення в експлуатацію житла---
-> HOUSING_COMPLETIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
+Residual standard error: 4.015 on 47 degrees of freedom
+Multiple R-squared:  0.9548,	Adjusted R-squared:  0.9432 
+F-statistic: 82.71 on 12 and 47 DF,  p-value: < 2.2e-16
 
-> colnames(HOUSING_COMPLETIONS)[2] <- "ВведЖитла"
 
-> # ---Індекс геополітичних ризиків---
-> GPR_INDEX <- importf("Індекс геополітичних ризиків", "%d.%m.%Y")
+> # ======== НОВА МОДЕЛЬ 3 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg2, which = 1) 
 
-> colnames(GPR_INDEX)[2] <- "ІГР"
+> residuals_plot(model_Sqrt_20q_Lg2)
 
-> # ---Індекс фінансового стресу---
-> FS_INDEX <- importf("Індекс фінансового стресу", "%d.%m.%Y")
+> residuals_regressors_plot(model_Sqrt_20q_Lg2, c(3, 4), type = "rstudent")
 
-> colnames(FS_INDEX)[2] <- "ІФС"
+> # Для рівнів Кімнатності зник зсув середнього від нуля.
+> # ІЦЖВ - структурний зсув? 
+> 
+> av_plots(model_Sqrt_20q_Lg2)
 
-> # ---Індекс цін на житло на вторинному ринку---
-> SECOND_HAND_HPRICE_INDEX <- importf("Індекс цін на житло на вторинному ринку", "%Y-%m-%d")
+> crPlots(model_Sqrt_20q_Lg2)
 
-> colnames(SECOND_HAND_HPRICE_INDEX) <- c("Дата", "ІЦЖВ")
+> par(mfrow = c(1, 1))
 
-> # ---Індекс цін на житло на первинному ринку---
-> NEW_HPRICE_INDEX <- importf("Індекс цін на житло на первинному ринку", "%Y-%m-%d")
+> resettest(model_Sqrt_20q_Lg2, power = 2) # p-value = 0.8151
 
-> colnames(NEW_HPRICE_INDEX) <- c("Дата", "ІЦЖП")
+	RESET test
 
-> # ---Індекс цін у будівництві---
-> CP_INDEX <- importf("Індекс цін у будівництві", "%d.%m.%Y")
+data:  model_Sqrt_20q_Lg2
+RESET = 0.055302, df1 = 1, df2 = 46, p-value = 0.8151
 
-> colnames(CP_INDEX) <- c("Дата", "ІЦБ")
 
-> # ---Обсяг чистих гривневих кредитів---
-> NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів", "%d.%m.%Y")
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg2, which = 3)
 
-> colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
+> bptest(model_Sqrt_20q_Lg2) # p-value = 0.004985
 
-> NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
+	studentized Breusch-Pagan test
 
-> # ---Оцінка доходів населення---
-> HH_INCOME_ESTIMATE <- importf("Оцінка доходів населення", "%d.%m.%Y")
+data:  model_Sqrt_20q_Lg2
+BP = 28.309, df = 12, p-value = 0.004985
 
-> colnames(HH_INCOME_ESTIMATE) <- c("Дата", "ОцінкаДоходів")
 
-> # ---Рівень доларизації коштів фізосіб і бізнесу---
-> # Вимірюється у відсотках!
-> DOLLARIZATION_LEVEL <- importf("Рівень доларизації коштів фізосіб ..." ... [TRUNCATED] 
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg2) ~ df_longq$Кімнатність) # p-value = 0.1142
 
-> colnames(DOLLARIZATION_LEVEL) <- c("Дата", "РівДолар")
+	Bartlett test of homogeneity of variances
+
+data:  residuals(model_Sqrt_20q_Lg2) by df_longq$Кімнатність
+Bartlett's K-squared = 4.3404, df = 2, p-value = 0.1142
+
+
+> leveneTest(residuals(model_Sqrt_20q_Lg2) ~ df_longq$Кімнатність) # p-value = 0.03724      
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  3.4879 0.03724 *
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> DOLLARIZATION_LEVEL <- DOLLARIZATION_LEVEL[-1, -3]
+> observe_transforms_x(model_Sqrt_20q_Lg2, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     350.4252 350.4333 352.4242 350.4154 352.4149 350.4736 352.4235 365.7898 350.4252
+Долар    350.4252 350.6139 351.3560 350.1055 351.4358 351.2881 351.2731 374.1832 350.4252
+ІФС      350.4252 348.7094 346.0576 353.2511 345.9538 346.4005 348.0624 347.2727 346.5350
+ІГР      350.4252 351.9564 350.9013 349.7858 351.7432 356.1264 350.5136 353.7283 350.6782
+ІЦБ      350.4252 350.2772 350.7135 350.7538 350.4380 349.9046 350.9593 350.1408 350.7987
+ЧисНасел 350.4252 350.4239 352.2695 350.4278 352.2727 350.4200 352.2663 350.4226 352.2685
+ІЦЖВ     350.4252 350.3690 350.6885 350.5360 350.7469 350.1976 350.6336 350.3123 350.6698
+ІЦЖП     350.4252 350.3105 349.8916 350.6463 349.9814 349.9512 349.8071 350.1932 349.8628
 
-> rownames(DOLLARIZATION_LEVEL) <- NULL
+$AIC_diffs
+         linear         sqrt      +sqrt       square     +square      inverse    +inverse           log
+Євро          0 -0.008137270 -1.9990033  0.009822191 -1.98968870 -0.048422310 -1.99829623 -15.364623477
+Долар         0 -0.188672112 -0.9308413  0.319697626 -1.01063984 -0.862877318 -0.84787093 -23.758020928
+ІФС           0  1.715801872  4.3675525 -2.825914810  4.47136749  4.024659448  2.36284580   3.152512471
+ІГР           0 -1.531222951 -0.4761073  0.639440246 -1.31803073 -5.701208566 -0.08841833  -3.303099743
+ІЦБ           0  0.147978953 -0.2882588 -0.328573541 -0.01276813  0.520622252 -0.53407312   0.284412609
+ЧисНасел      0  0.001297192 -1.8443180 -0.002584235 -1.84749526  0.005208759 -1.84112053   0.002597733
+ІЦЖВ          0  0.056211465 -0.2632762 -0.110777060 -0.32166295  0.227612266 -0.20835992   0.112915092
+ІЦЖП          0  0.114679095  0.5335782 -0.221101367  0.44379042  0.474035563  0.61813908   0.231993608
+                  +log
+Євро      1.193712e-12
+Долар     9.094947e-13
+ІФС       3.890214e+00
+ІГР      -2.529956e-01
+ІЦБ      -3.734576e-01
+ЧисНасел -1.843254e+00
+ІЦЖВ     -2.445882e-01
+ІЦЖП      5.623631e-01
 
-> # ---Річні темпи зміни коштів фізосіб---
-> # Вимірюється у відсотках!
-> HH_DEPOSITS_ANNUAL_GROWTH <- importf("Річні темпи зміни коштів фізосіб", "%d ..." ... [TRUNCATED] 
 
-> colnames(HH_DEPOSITS_ANNUAL_GROWTH) <- c("Дата", "ТемпЗмінКошт")
+> model_Sqrt_20q_Lg2Sq <- update(model_Sqrt_20q_Lg2, . ~ . + I(ІФС^2))
 
-> HH_DEPOSITS_ANNUAL_GROWTH <- HH_DEPOSITS_ANNUAL_GROWTH[-1, c(1,2)]
+> # AIC_diff = 4.47136749       
+> summary(model_Sqrt_20q_Lg2Sq)
 
-> rownames(HH_DEPOSITS_ANNUAL_GROWTH) <- NULL
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2), data = df_longq)
 
-> HH_DEPOSITS_ANNUAL_GROWTH[[1]] <- floor_date(HH_DEPOSITS_ANNUAL_GROWTH[[1]], "month")
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.5719 -3.0289 -0.1636  1.8941  9.3615 
 
-> # ---Розмір компенсації від держави---
-> # Вимірюється у відсотках!
-> # Таблиця містить дві величини
-> STATE_COMPENS_AMOUNT <- importf("Розмір компе ..." ... [TRUNCATED] 
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.982e+03  2.279e+03   4.380 6.80e-05 ***
+Євро         -6.820e+01  1.710e+01  -3.989 0.000236 ***
+Долар         2.594e+02  5.023e+01   5.164 5.06e-06 ***
+ІФС          -5.970e+02  2.150e+02  -2.777 0.007918 ** 
+ІГР          -1.130e+01  6.335e+00  -1.784 0.081072 .  
+ІЦБ           8.587e-01  1.456e-01   5.899 4.10e-07 ***
+ЧисНасел      1.148e-04  9.745e-05   1.179 0.244637    
+ІЦЖВ          1.220e+00  4.812e-01   2.535 0.014700 *  
+ІЦЖП          1.983e+00  8.357e-01   2.373 0.021884 *  
+Кімнатність2  1.548e+01  1.216e+00  12.730  < 2e-16 ***
+Кімнатність3  3.283e+01  1.216e+00  27.000  < 2e-16 ***
+log(Долар)   -6.776e+03  1.325e+03  -5.113 6.01e-06 ***
+log(Євро)     1.976e+03  5.229e+02   3.779 0.000452 ***
+I(ІФС^2)      8.291e+03  3.622e+03   2.289 0.026729 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> STATE_COMPENS_AMOUNT <- STATE_COMPENS_AMOUNT[-1, -2]
+Residual standard error: 3.845 on 46 degrees of freedom
+Multiple R-squared:  0.9594,	Adjusted R-squared:  0.9479 
+F-statistic: 83.64 on 13 and 46 DF,  p-value: < 2.2e-16
 
-> colnames(STATE_COMPENS_AMOUNT) <- c("Дата", "КредПортфель", "НовіКредити")
 
-> STOCK <- STATE_COMPENS_AMOUNT[, c(1, 2)]
+> waldtest(model_Sqrt_20q_Lg2, model_Sqrt_20q_Lg2Sq, 
++          vcov = function(x) vcovCL(x, cluster = df_longq$Кімнатність)) # +
+Wald test
 
-> FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
+Model 1: sqrt(Ціна) ~ Євро + Долар + ІФС + ІГР + ІЦБ + 
+    ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність + 
+    log(Долар) + log(Євро)
+Model 2: sqrt(Ціна) ~ Євро + Долар + ІФС + ІГР + ІЦБ + 
+    ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність + 
+    log(Долар) + log(Євро) + I(ІФС^2)
+  Res.Df Df      F  Pr(>F)  
+1     47                    
+2     46  1 5.2696 0.02631 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> # ---Споживчі настрої домогосподарств---
-> CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
+> # ======== НОВА МОДЕЛЬ 4 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg2Sq, which = 1) # Гірше?
 
-> colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
+> residuals_plot(model_Sqrt_20q_Lg2Sq) 
 
-> CONSUMER_CONFIDENCE[[1]] <- floor_date(CONSUMER_CONFIDENCE[[1]], "month")
+> residuals_regressors_plot(model_Sqrt_20q_Lg2Sq, c(2, 4), type = "rstudent")
 
-> # ---Чисельність населення---
-> POPULATION <- importf("Чисельність населення", "%d.%m.%Y")
+> # З'явився зсув медіани для К3.
+> 
+> av_plots(model_Sqrt_20q_Lg2Sq) 
 
-> colnames(POPULATION) <- c("Дата", "ЧисНасел") 
+> crPlots(model_Sqrt_20q_Lg2Sq)
 
-> # Хоч спостереження чисельності населення і записані як щоденні, проте їх значення 
-> # є однаковими для всіх днів місяця. Тобто дані оцінюються щом .... [TRUNCATED] 
-[1] "D:/R/R projects/Appartment Rent in Kyiv 2026/Appartment-Rent-in-Kyiv-2026/01_import.R"
+> # Виправили дугу для ІФС.
+> par(mfrow = c(1, 1))
 
-> library(rio)
+> resettest(model_Sqrt_20q_Lg2Sq, power = 2) # p-value = 0.9331
 
-> library(lubridate)
+	RESET test
 
-> library(dplyr)
+data:  model_Sqrt_20q_Lg2Sq
+RESET = 0.0071222, df1 = 1, df2 = 45, p-value = 0.9331
 
-> get_csv_name <- function(filename){
-+   dir <- paste0(here(),"/Data", "/", filename, ".csv")
-+   return(dir)
-+ }
 
-> importf <- function(filename, date_format){
-+   table <- import(get_csv_name(filename))
-+   
-+   # При виконанні source() функція перший елемент мож .... [TRUNCATED] 
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg2Sq, which = 3)
 
-> # ---Курс євро---
-> EUR <- importf("EUR", "%d.%m.%Y")
+> bptest(model_Sqrt_20q_Lg2Sq) # p-value = 0.001666
 
-> # Видалимо зайві (порожні) стовпці та встановимо коректний заголовок
-> EUR <- EUR[-1, -c(3,4)]
+	studentized Breusch-Pagan test
 
-> colnames(EUR) <- c("Дата", "Євро")
+data:  model_Sqrt_20q_Lg2Sq
+BP = 33.065, df = 13, p-value = 0.001666
 
-> # Після видалення рядка змістимо нумерацію рядків, щоб номери йшли підряд від 1
-> rownames(EUR) <- NULL
 
-> # ---Курс долара, кімнатність---
-> MULTIROOM <- importf("Price, dollar", "%d.%m.%y")
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg2Sq) ~ df_longq$Кімнатність) # p-value = 0.2123
 
-> # colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
-> # На жаль, "Курс долара" містить більше сотні пропусків, тому завантажимо дані від Н .... [TRUNCATED] 
+	Bartlett test of homogeneity of variances
 
-> colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
+data:  residuals(model_Sqrt_20q_Lg2Sq) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0994, df = 2, p-value = 0.2123
 
-> # ---Курс долара---
-> USD <- importf("USD", "%d.%m.%Y")
 
-> USD[USD$`Кількість одиниць` == 100, 7] <- round(USD[USD$`Кількість одиниць` == 100, 7] / 100, 2)
+> leveneTest(residuals(model_Sqrt_20q_Lg2Sq) ~ df_longq$Кімнатність) # p-value = 0.09857      
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  2.4138 0.09857 .
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> USD <- USD[, c(1, 7)]
+> observe_transforms_x(model_Sqrt_20q_Lg2Sq, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     345.9538 346.0104 347.7879 345.8549 347.7433 346.2119 347.8295 361.7816 345.9538
+Долар    345.9538 346.0550 347.6809 345.8131 347.7210 346.4773 347.6376 371.3869 345.9538
+ІФС      345.9538 345.8968 347.8953 353.2511 345.9538 347.6498 347.9407 346.1584 347.9400
+ІГР      345.9538 347.0306 346.7433 345.4994 347.4766 349.8034 346.0581 348.2654 346.4710
+ІЦБ      345.9538 345.8435 347.0669 346.2008 346.9618 345.5706 347.1585 345.7426 347.0989
+ЧисНасел 345.9538 345.9532 347.8474 345.9551 347.8504 345.9512 347.8443 345.9525 347.8464
+ІЦЖВ     345.9538 345.8775 346.4793 346.1105 346.4611 345.6578 346.4967 345.8027 346.4852
+ІЦЖП     345.9538 345.8250 343.9903 346.2031 343.9923 345.4223 343.9948 345.6933 343.9911
 
-> colnames(USD) <- c("Дата", "Долар")
+$AIC_diffs
+         linear          sqrt      +sqrt       square       +square      inverse   +inverse           log
+Євро          0 -0.0565887018 -1.8340546  0.098921255 -1.789511e+00 -0.258056332 -1.8756250 -15.827735697
+Долар         0 -0.1011636867 -1.7270929  0.140747164 -1.767205e+00 -0.523485400 -1.6837875 -25.433017510
+ІФС           0  0.0570424107 -1.9414242 -7.297282303  5.684342e-14 -1.695949855 -1.9868323  -0.204567633
+ІГР           0 -1.0767375003 -0.7894837  0.454409909 -1.522723e+00 -3.849534168 -0.1042426  -2.311569813
+ІЦБ           0  0.1102956638 -1.1130620 -0.246936130 -1.007981e+00  0.383228204 -1.2046378   0.211228745
+ЧисНасел      0  0.0006441247 -1.8935513 -0.001275517 -1.896591e+00  0.002601872 -1.8904719   0.001292483
+ІЦЖВ          0  0.0763083178 -0.5254390 -0.156664968 -5.072925e-01  0.296038839 -0.5428161   0.151145498
+ІЦЖП          0  0.1288816199  1.9635669 -0.249248310  1.961496e+00  0.531559058  1.9590126   0.260505881
+                  +log
+Євро      1.307399e-12
+Долар     9.094947e-13
+ІФС      -1.986214e+00
+ІГР      -5.171558e-01
+ІЦБ      -1.145036e+00
+ЧисНасел -1.892529e+00
+ІЦЖВ     -5.313217e-01
+ІЦЖП      1.962764e+00
 
-> # ---1-кімнатні квартири---
-> SGLROOM <- MULTIROOM[, c(1, 2)]
 
-> colnames(SGLROOM)[2] <- "Ціна"
+> # Проблеми з гомоскедастичністю? Графіки виглядають нормально.
+> # БП-тест міг провалити тест через залежність даних.
+> # Модель систематично недооц .... [TRUNCATED] 
+[1] 60 20 18
 
-> # ---2-кімнатні квартири---
-> DBLROOM <- MULTIROOM[, c(1, 3)]
+> shapiro.test(residuals(model_Sqrt_20q_Lg2Sq)) # p-value = 0.312
 
-> colnames(DBLROOM)[2] <- "Ціна"
+	Shapiro-Wilk normality test
 
-> # ---3-кімнатні квартири---
-> TRPROOM <- MULTIROOM[, c(1, 4)]
+data:  residuals(model_Sqrt_20q_Lg2Sq)
+W = 0.97691, p-value = 0.312
 
-> colnames(TRPROOM)[2] <- "Ціна"
 
-> # ---Активність на ринку житла---
-> ACTIVITY <- importf("Активність на ринку житла", "%d.%m.%Y")
+> ad.test(residuals(model_Sqrt_20q_Lg2Sq)) # p-value = 0.3029
 
-> colnames(ACTIVITY)[2] <- "Активність"
+	Anderson-Darling normality test
 
-> # ---Боргове навантаження домогосподарств---
-> HH_DEBT_BURDEN <- importf("Боргове навантаження домогосподарств", "%d.%m.%Y")
+data:  residuals(model_Sqrt_20q_Lg2Sq)
+A = 0.42751, p-value = 0.3029
 
-> colnames(HH_DEBT_BURDEN)[2] <- "БоргНавантаж"
 
-> # ---Введення в експлуатацію житла---
-> HOUSING_COMPLETIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
+> # ==== 5) АВТОКОРЕЛЯЦІЯ ====
+> time_series_residuals(model_Sqrt_20q_Lg2Sq)
 
-> colnames(HOUSING_COMPLETIONS)[2] <- "ВведЖитла"
+> resplot_matrix_cr(model_Sqrt_20q_Lg2Sq) # e1 та е2 корелюють, е3 з іншими - навряд.
 
-> # ---Індекс геополітичних ризиків---
-> GPR_INDEX <- importf("Індекс геополітичних ризиків", "%d.%m.%Y")
+> cor_residuals_cr(model_Sqrt_20q_Lg2Sq) # Підверджено думку вище.
+           e_1k      e_2k       e_3k
+e_1k  1.0000000 0.7639577 -0.2276805
+e_2k  0.7639577 1.0000000  0.1473730
+e_3k -0.2276805 0.1473730  1.0000000
 
-> colnames(GPR_INDEX)[2] <- "ІГР"
+> acf_cr(model_Sqrt_20q_Lg2Sq) # Часової автокореляції немає.
 
-> # ---Індекс фінансового стресу---
-> FS_INDEX <- importf("Індекс фінансового стресу", "%d.%m.%Y")
+> # Отже, використовуємо SE DK.
+> summary(model_Sqrt_20q_Lg2Sq)
 
-> colnames(FS_INDEX)[2] <- "ІФС"
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2), data = df_longq)
 
-> # ---Індекс цін на житло на вторинному ринку---
-> SECOND_HAND_HPRICE_INDEX <- importf("Індекс цін на житло на вторинному ринку", "%Y-%m-%d")
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.5719 -3.0289 -0.1636  1.8941  9.3615 
 
-> colnames(SECOND_HAND_HPRICE_INDEX) <- c("Дата", "ІЦЖВ")
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.982e+03  2.279e+03   4.380 6.80e-05 ***
+Євро         -6.820e+01  1.710e+01  -3.989 0.000236 ***
+Долар         2.594e+02  5.023e+01   5.164 5.06e-06 ***
+ІФС          -5.970e+02  2.150e+02  -2.777 0.007918 ** 
+ІГР          -1.130e+01  6.335e+00  -1.784 0.081072 .  
+ІЦБ           8.587e-01  1.456e-01   5.899 4.10e-07 ***
+ЧисНасел      1.148e-04  9.745e-05   1.179 0.244637    
+ІЦЖВ          1.220e+00  4.812e-01   2.535 0.014700 *  
+ІЦЖП          1.983e+00  8.357e-01   2.373 0.021884 *  
+Кімнатність2  1.548e+01  1.216e+00  12.730  < 2e-16 ***
+Кімнатність3  3.283e+01  1.216e+00  27.000  < 2e-16 ***
+log(Долар)   -6.776e+03  1.325e+03  -5.113 6.01e-06 ***
+log(Євро)     1.976e+03  5.229e+02   3.779 0.000452 ***
+I(ІФС^2)      8.291e+03  3.622e+03   2.289 0.026729 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.845 on 46 degrees of freedom
+Multiple R-squared:  0.9594,	Adjusted R-squared:  0.9479 
+F-statistic: 83.64 on 13 and 46 DF,  p-value: < 2.2e-16
+
+
+> model_feolsq <- feols(formula(model_Sqrt_20q_Lg2Sq), data = df_long_dateq, 
++                      panel.id = ~ Кімнатність + Дата)
+[1] "D:/R/R projects/Appartment Rent in Kyiv 2026/Appartment-Rent-in-Kyiv-2026/044(q)_ind_data1_regression.R"
+
+> # ----- 20 СПОСТЕРЕЖЕНЬ -----
+> model_20q_df_date <- model_df_20q[, !names(model_df_20q) %in% c("Ч", "РівДолар")]
+
+> df_long_dateq <- model_20q_df_date %>%
++   pivot_longer(cols = c(К1, К2, К3), 
++                names_to = "Кімнатність", 
++                values_t .... [TRUNCATED] 
+
+> model_20q_df <- model_20q_df_date[, -1]
+
+> df_longq <- df_long_dateq[, -1]
+
+> # ==== 1) ПОВНА МОДЕЛЬ ====
+> model_full_20q <- lm(Ціна ~ ., data = df_longq)
+
+> summary(model_full_20q)
+
+Call:
+lm(formula = Ціна ~ ., data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2534.9  -774.8  -167.0   742.0  3455.5 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -3.041e+05  6.735e+04  -4.515 3.99e-05 ***
+Євро         -7.090e+02  2.743e+02  -2.585  0.01276 *  
+Долар         7.491e+02  3.677e+02   2.037  0.04703 *  
+ІФС          -4.492e+03  1.748e+04  -0.257  0.79827    
+ІГР          -1.157e+03  1.802e+03  -0.642  0.52360    
+ІЦБ           2.187e+02  4.223e+01   5.178 4.19e-06 ***
+ЧисНасел      8.031e-02  2.303e-02   3.488  0.00104 ** 
+ІЦЖВ          2.787e+02  1.358e+02   2.052  0.04553 *  
+ІЦЖП          2.204e+02  2.330e+02   0.946  0.34897    
+Кімнатність2  3.155e+03  3.755e+02   8.403 4.66e-11 ***
+Кімнатність3  7.261e+03  3.755e+02  19.336  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1187 on 49 degrees of freedom
+Multiple R-squared:  0.9171,	Adjusted R-squared:  0.9002 
+F-statistic: 54.22 on 10 and 49 DF,  p-value: < 2.2e-16
+
+
+> # ==== 2) АНАЛІЗ ЗАЛИШКІВ І ВИЯВЛЕННЯ ВИКИДІВ ====
+> residuals_plot(model_full_20q)
+
+> residuals_regressors_plot(model_full_20q, c(2, 4), type = "rstudent")
+
+> cooks_dist(model_full_20q)
+Відстань Кука 
+        60         57         58         18         42         24         23          9         59         54 
+0.45464886 0.19030191 0.15507820 0.11175387 0.04530892 0.04205385 0.03993280 0.03952062 0.03431666 0.03238760 
+Порогове значення: 0.08163265 
+Впливові точки: 18 57 58 60 
+
+
+> df_fits(model_full_20q)
+|DFFITS| 
+       60        57        58        18        42        24        23         9        59        54 
+2.5470884 1.5198638 1.3503088 1.1655319 0.7166047 0.6846401 0.6665736 0.6612165 0.6137936 0.6015764 
+Порогове значення: 0.8563488 
+Впливові точки: 18 57 58 60 
+ 
+
+> df_betas(model_full_20q)
+|DFBETAS| 
+Порогове значення: 0.2581989 
+---- (Intercept) ----
+       18         9         7        57         8        17        58        42        16        39 
+0.4206094 0.4074096 0.3396322 0.3156498 0.2322487 0.2153063 0.1888851 0.1827412 0.1704560 0.1193442 
+Впливові точки: 7 9 18 57 
+---- Євро ----
+        9         7        58         8        42         2        41        59        18        55 
+0.4341783 0.3609243 0.2698125 0.2475085 0.2316165 0.1730620 0.1308073 0.1226454 0.1209022 0.1100439 
+Впливові точки: 7 9 58 
+---- Долар ----
+        60         57         20         18         54         21         14         52         15         17 
+0.41845350 0.37130898 0.19148150 0.18833267 0.18122193 0.15819263 0.10860571 0.09948733 0.09734413 0.09640583 
+Впливові точки: 57 60 
+---- ІФС ----
+        9        18         7        24        23         8        58        17        16         2 
+0.3932246 0.3371214 0.3268803 0.3226749 0.3141601 0.2241624 0.2084084 0.1725695 0.1374108 0.1013450 
+Впливові точки: 7 9 18 23 24 
+---- ІГР ----
+       60        18         9         7        55        24        23        42         8        17 
+0.7531717 0.3200686 0.2899835 0.2410579 0.2204340 0.2105150 0.2049599 0.1932161 0.1653085 0.1638403 
+Впливові точки: 9 18 60 
+---- ІЦБ ----
+       60        20        21        51        54        24        23        19        52        42 
+0.6024984 0.2988424 0.2468889 0.2385070 0.2364673 0.2346332 0.2284416 0.1409774 0.1298160 0.1183777 
+Впливові точки: 20 60 
+---- ЧисНасел ----
+       24        23        60         5        46        20        43        21        47        55 
+0.2271065 0.2211135 0.2074808 0.1933522 0.1876058 0.1656834 0.1418710 0.1368795 0.1251959 0.1226856 
+Впливові точки:  
+---- ІЦЖВ ----
+       18        42        17        16         9         7        41        24        23        32 
+0.4164786 0.2458781 0.2131917 0.1697568 0.1680094 0.1396631 0.1388616 0.1232357 0.1199837 0.1117529 
+Впливові точки: 18 
+---- ІЦЖП ----
+        57         60         27         20         30         25         21         26         54         56 
+0.76005900 0.29307037 0.26082725 0.17918180 0.16298095 0.14843579 0.14803122 0.14556432 0.12505364 0.09480073 
+Впливові точки: 27 57 60 
+---- Кімнатність2 ----
+       58        20        23        32        16        47        35        52         8        44 
+0.3936277 0.2581217 0.2240933 0.1926460 0.1765820 0.1456585 0.1430365 0.1268701 0.1181002 0.1128758 
+Впливові точки: 58 
+---- Кімнатність3 ----
+       60        57        58        24        21         9        16        52        12        55 
+0.7425002 0.4577563 0.3936277 0.2301671 0.2132475 0.2071708 0.1765820 0.1268701 0.1135193 0.1040889 
+Впливові точки: 57 58 60 
+
+ Всі впливові точки: 7 9 18 20 23 24 27 57 58 60
+> # ==== 3) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ ====
+> # ЛІНІЙНІСТЬ
+> plot(model_full_20q, which = 1)
+
+> # Зі збільшенням прогнозованих значень крива сильніше відхиляється від нуля.
+> 
+> av_plots(model_full_20q)
+
+> crPlots(model_full_20q) # ІГР - ?
+
+> par(mfrow = c(1, 1))
+
+> resettest(model_full_20q, power = 2) # p-value = 0.01387
+
+	RESET test
+
+data:  model_full_20q
+RESET = 6.5239, df1 = 1, df2 = 48, p-value = 0.01387
+
+
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_full_20q, which = 3)
+
+> # Зі збільшенням прогнозованих значень дисперсія трохи зростає.
+> 
+> residuals_regressors_plot(model_full_20q, c(2, 4), type = "rstudent")
 
-> # ---Індекс цін на житло на первинному ринку---
-> NEW_HPRICE_INDEX <- importf("Індекс цін на житло на первинному ринку", "%Y-%m-%d")
+> # ІГР - ?
+> 
+> bptest(model_full_20q) # p-value = 0.00277
 
-> colnames(NEW_HPRICE_INDEX) <- c("Дата", "ІЦЖП")
+	studentized Breusch-Pagan test
 
-> # ---Індекс цін у будівництві---
-> CP_INDEX <- importf("Індекс цін у будівництві", "%d.%m.%Y")
+data:  model_full_20q
+BP = 26.83, df = 10, p-value = 0.00277
 
-> colnames(CP_INDEX) <- c("Дата", "ІЦБ")
 
-> # ---Обсяг чистих гривневих кредитів---
-> NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів", "%d.%m.%Y")
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_full_20q) ~ df_longq$Кімнатність) # p-value = 0.02926
 
-> colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
+	Bartlett test of homogeneity of variances
 
-> NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
+data:  residuals(model_full_20q) by df_longq$Кімнатність
+Bartlett's K-squared = 7.0627, df = 2, p-value = 0.02926
 
-> # ---Оцінка доходів населення---
-> HH_INCOME_ESTIMATE <- importf("Оцінка доходів населення", "%d.%m.%Y")
 
-> colnames(HH_INCOME_ESTIMATE) <- c("Дата", "ОцінкаДоходів")
+> leveneTest(residuals(model_full_20q) ~ df_longq$Кімнатність) # p-value = 0.09165   
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  2.4928 0.09165 .
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-> # ---Рівень доларизації коштів фізосіб і бізнесу---
-> # Вимірюється у відсотках!
-> DOLLARIZATION_LEVEL <- importf("Рівень доларизації коштів фізосіб ..." ... [TRUNCATED] 
+> # Гетероскедастичність!
+> 
+> 
+> bc <- boxcox(model_full_20q, lambda = seq(0, 1, by = 0.1))
 
-> colnames(DOLLARIZATION_LEVEL) <- c("Дата", "РівДолар")
+> lambda_opt <- bc$x[which.max(bc$y)]
 
-> DOLLARIZATION_LEVEL <- DOLLARIZATION_LEVEL[-1, -3]
+> cat("Оптимальне λ:", round(lambda_opt, 2), "\n") # 0.32 
+Оптимальне λ: 0.32 
 
-> rownames(DOLLARIZATION_LEVEL) <- NULL
+> # ДІ містить 0.5 - візьмемо його.
+> 
+> model_Sqrt_20q <- lm(sqrt(Ціна) ~ ., data = df_longq)
 
-> # ---Річні темпи зміни коштів фізосіб---
-> # Вимірюється у відсотках!
-> HH_DEPOSITS_ANNUAL_GROWTH <- importf("Річні темпи зміни коштів фізосіб", "%d ..." ... [TRUNCATED] 
+> summary(model_Sqrt_20q)
 
-> colnames(HH_DEPOSITS_ANNUAL_GROWTH) <- c("Дата", "ТемпЗмінКошт")
+Call:
+lm(formula = sqrt(Ціна) ~ ., data = df_longq)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-9.652 -3.522 -0.256  3.476  9.801 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -1.427e+03  2.755e+02  -5.178 4.19e-06 ***
+Євро         -2.746e+00  1.122e+00  -2.448   0.0180 *  
+Долар         2.901e+00  1.504e+00   1.929   0.0595 .  
+ІФС          -7.457e+00  7.150e+01  -0.104   0.9174    
+ІГР          -5.339e+00  7.370e+00  -0.724   0.4723    
+ІЦБ           9.799e-01  1.727e-01   5.673 7.43e-07 ***
+ЧисНасел      4.087e-04  9.419e-05   4.339 7.13e-05 ***
+ІЦЖВ          1.367e+00  5.555e-01   2.462   0.0174 *  
+ІЦЖП          6.097e-01  9.533e-01   0.640   0.5254    
+Кімнатність2  1.548e+01  1.536e+00  10.077 1.56e-13 ***
+Кімнатність3  3.283e+01  1.536e+00  21.374  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.857 on 49 degrees of freedom
+Multiple R-squared:  0.931,	Adjusted R-squared:  0.9169 
+F-statistic: 66.13 on 10 and 49 DF,  p-value: < 2.2e-16
+
+
+> # ======== НОВА МОДЕЛЬ 1 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q, which = 1)
+
+> residuals_plot(model_Sqrt_20q) # Трохи рівномірніше.
+
+> residuals_regressors_plot(model_Sqrt_20q, c(2, 4), type = "rstudent")
+
+> av_plots(model_Sqrt_20q)
+
+> crPlots(model_Sqrt_20q) 
+
+> par(mfrow = c(1, 1))
+
+> resettest(model_Sqrt_20q, power = 2) # p-value = 0.827
+
+	RESET test
+
+data:  model_Sqrt_20q
+RESET = 0.048291, df1 = 1, df2 = 48, p-value = 0.827
+
+
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q, which = 3) 
+
+> bptest(model_Sqrt_20q) # p-value = 0.02547
+
+	studentized Breusch-Pagan test
 
-> HH_DEPOSITS_ANNUAL_GROWTH <- HH_DEPOSITS_ANNUAL_GROWTH[-1, c(1,2)]
+data:  model_Sqrt_20q
+BP = 20.426, df = 10, p-value = 0.02547
 
-> rownames(HH_DEPOSITS_ANNUAL_GROWTH) <- NULL
 
-> HH_DEPOSITS_ANNUAL_GROWTH[[1]] <- floor_date(HH_DEPOSITS_ANNUAL_GROWTH[[1]], "month")
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q) ~ df_longq$Кімнатність) # p-value = 0.2218
 
-> # ---Розмір компенсації від держави---
-> # Вимірюється у відсотках!
-> # Таблиця містить дві величини
-> STATE_COMPENS_AMOUNT <- importf("Розмір компе ..." ... [TRUNCATED] 
+	Bartlett test of homogeneity of variances
 
-> STATE_COMPENS_AMOUNT <- STATE_COMPENS_AMOUNT[-1, -2]
+data:  residuals(model_Sqrt_20q) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0119, df = 2, p-value = 0.2218
 
-> colnames(STATE_COMPENS_AMOUNT) <- c("Дата", "КредПортфель", "НовіКредити")
 
-> STOCK <- STATE_COMPENS_AMOUNT[, c(1, 2)]
+> leveneTest(residuals(model_Sqrt_20q) ~ df_longq$Кімнатність) # p-value = 0.2109  
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value Pr(>F)
+group  2  1.5998 0.2109
+      57               
 
-> FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
+> # БП-тест міг провалитися через сильну гетероскедастичність між групами.
+> 
+> 
+> # Над категоріальними змінними ФП не застосовуємо.
+> all_preds <- n .... [TRUNCATED] 
 
-> # ---Споживчі настрої домогосподарств---
-> CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
+> numeric_preds <- all_preds[!grepl("Кімнатність", all_preds)]
 
-> colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
+> observe_transforms_x(model_Sqrt_20q, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     371.7817 371.7385 373.7230 371.8897 373.7640 371.6777 373.6576 371.7054 373.7039
+Долар    371.7817 372.0255 364.0906 371.2692 363.8936 372.7055 364.3064 372.2608 364.1605
+ІФС      371.7817 371.5749 367.4551 371.5944 369.1318 369.7250 367.0221 371.1052 367.1087
+ІГР      371.7817 372.1650 372.0265 371.4120 373.2975 372.0759 370.7945 372.4024 371.5345
+ІЦБ      371.7817 371.5158 367.9940 372.3348 367.4739 370.7680 368.4831 371.2578 368.1606
+ЧисНасел 371.7817 371.7719 370.7683 371.8013 370.7606 371.7426 370.7760 371.7621 370.7709
+ІЦЖВ     371.7817 371.7547 373.5482 371.8338 373.5950 371.6713 373.4987 371.7273 373.5320
+ІЦЖП     371.7817 371.7684 373.1516 371.8055 373.2187 371.7233 373.0843 371.7543 373.1292
 
-> CONSUMER_CONFIDENCE[[1]] <- floor_date(CONSUMER_CONFIDENCE[[1]], "month")
+$AIC_diffs
+         linear         sqrt      +sqrt      square   +square     inverse   +inverse         log       +log
+Євро          0  0.043125914 -1.9412970 -0.10809027 -1.982358  0.10396452 -1.8759871  0.07620806 -1.9222097
+Долар         0 -0.243843899  7.6910529  0.51250095  7.888068 -0.92386122  7.4752938 -0.47917393  7.6211114
+ІФС           0  0.206708346  4.3265369  0.18723150  2.649892  2.05667484  4.7595682  0.67643521  4.6729373
+ІГР           0 -0.383383423 -0.2448135  0.36969547 -1.515888 -0.29423366  0.9871856 -0.62074173  0.2471591
+ІЦБ           0  0.265870296  3.7876623 -0.55319497  4.307798  1.01366329  3.2985637  0.52383396  3.6210600
+ЧисНасел      0  0.009794337  1.0133690 -0.01966798  1.021065  0.03901777  1.0056330  0.01956213  1.0107948
+ІЦЖВ          0  0.026932994 -1.7665442 -0.05218384 -1.813358  0.11032274 -1.7170818  0.05434190 -1.7503177
+ІЦЖП          0  0.013204233 -1.3699637 -0.02384716 -1.437030  0.05835358 -1.3026700  0.02730792 -1.3475282
 
-> # ---Чисельність населення---
-> POPULATION <- importf("Чисельність населення", "%d.%m.%Y")
 
-> colnames(POPULATION) <- c("Дата", "ЧисНасел") 
+> model_Sqrt_20q_Lg <- update(model_Sqrt_20q, . ~ . + log(Долар))
 
-> # Хоч спостереження чисельності населення і записані як щоденні, проте їх значення 
-> # є однаковими для всіх днів місяця. Тобто дані оцінюються щом .... [TRUNCATED] 
+> # AIC_diff = 7.6211114
+> summary(model_Sqrt_20q_Lg)
+
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар), data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.9119 -3.2537 -0.5524  3.1622 10.3616 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   5.196e+03  2.307e+03   2.253 0.028875 *  
+Євро         -3.983e+00  1.130e+00  -3.524 0.000946 ***
+Долар         1.086e+02  3.660e+01   2.967 0.004684 ** 
+ІФС          -3.736e+01  6.747e+01  -0.554 0.582376    
+ІГР          -1.148e+01  7.194e+00  -1.596 0.117160    
+ІЦБ           1.039e+00  1.624e-01   6.400 6.11e-08 ***
+ЧисНасел      2.426e-04  1.050e-04   2.311 0.025196 *  
+ІЦЖВ          1.337e+00  5.181e-01   2.581 0.012968 *  
+ІЦЖП          1.407e+00  9.308e-01   1.512 0.137195    
+Кімнатність2  1.548e+01  1.432e+00  10.806 1.88e-14 ***
+Кімнатність3  3.283e+01  1.432e+00  22.921  < 2e-16 ***
+log(Долар)   -2.741e+03  9.488e+02  -2.889 0.005778 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.53 on 48 degrees of freedom
+Multiple R-squared:  0.9412,	Adjusted R-squared:  0.9278 
+F-statistic: 69.89 on 11 and 48 DF,  p-value: < 2.2e-16
+
+
+> # ======== НОВА МОДЕЛЬ 2 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg, which = 1) 
+
+> residuals_plot(model_Sqrt_20q_Lg)
+
+> residuals_regressors_plot(model_Sqrt_20q_Lg, c(2, 4), type = "rstudent")
+
+> av_plots(model_Sqrt_20q_Lg)
+
+> crPlots(model_Sqrt_20q_Lg) # ІФС - дуга.
+
+> par(mfrow = c(1, 1))
+
+> resettest(model_Sqrt_20q_Lg, power = 2) # p-value = 0.6533
+
+	RESET test
+
+data:  model_Sqrt_20q_Lg
+RESET = 0.20443, df1 = 1, df2 = 47, p-value = 0.6533
+
+
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg, which = 3)
+
+> bptest(model_Sqrt_20q_Lg) # p-value = 0.1501
+
+	studentized Breusch-Pagan test
+
+data:  model_Sqrt_20q_Lg
+BP = 15.765, df = 11, p-value = 0.1501
+
+
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg) ~ df_longq$Кімнатність) # p-value = 0.2131
+
+	Bartlett test of homogeneity of variances
+
+data:  residuals(model_Sqrt_20q_Lg) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0917, df = 2, p-value = 0.2131
+
+
+> leveneTest(residuals(model_Sqrt_20q_Lg) ~ df_longq$Кімнатність) # p-value = 0.3817   
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value Pr(>F)
+group  2  0.9796 0.3817
+      57               
+
+> observe_transforms_x(model_Sqrt_20q_Lg, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     364.1605 364.9871 350.4250 362.4514 350.4315 367.3118 350.4302 365.7898 350.4252
+Долар    364.1605 364.2348 364.8274 364.0188 364.8616 364.4697 364.7933 372.2608 364.1605
+ІФС      364.1605 363.6016 359.8508 364.5409 360.1764 361.7326 361.1622 362.8932 360.1057
+ІГР      364.1605 364.6898 365.8755 364.6441 366.1597 366.9263 365.3440 365.5494 365.6775
+ІЦБ      364.1605 363.9583 363.3904 364.6056 362.9467 363.4414 363.7983 363.7705 363.5304
+ЧисНасел 364.1605 364.1552 363.9791 364.1712 363.9813 364.1392 363.9769 364.1499 363.9784
+ІЦЖВ     364.1605 364.0757 363.9904 364.3264 364.1301 363.8142 363.8567 363.9896 363.9452
+ІЦЖП     364.1605 364.0832 362.2538 364.3024 362.5289 363.8236 361.9845 364.0014 362.1633
+
+$AIC_diffs
+         linear         sqrt      +sqrt      square     +square     inverse   +inverse         log
+Євро          0 -0.826566102 13.7355531  1.70915538 13.72907827 -3.15124997 13.7303020 -1.62928303
+Долар         0 -0.074208152 -0.6668537  0.14175988 -0.70106640 -0.30910889 -0.6327633 -8.10028533
+ІФС           0  0.558991003  4.3097230 -0.38038542  3.98415947  2.42790167  2.9983722  1.26729743
+ІГР           0 -0.529218602 -1.7149845 -0.48352676 -1.99915072 -2.76576231 -1.1834754 -1.38887090
+ІЦБ           0  0.202266699  0.7701651 -0.44506003  1.21384037  0.71912911  0.3622872  0.39003724
+ЧисНасел      0  0.005336381  0.1814639 -0.01068586  0.17925803  0.02131859  0.1836249  0.01066832
+ІЦЖВ          0  0.084891524  0.1700939 -0.16587636  0.03039415  0.34634060  0.3038766  0.17097277
+ІЦЖП          0  0.077324296  1.9067616 -0.14189801  1.63161465  0.33694686  2.1760546  0.15913623
+                  +log
+Євро      1.373534e+01
+Долар     2.842171e-13
+ІФС       4.054852e+00
+ІГР      -1.516920e+00
+ІЦБ       6.301090e-01
+ЧисНасел  1.821892e-01
+ІЦЖВ      2.153633e-01
+ІЦЖП      1.997268e+00
+
+
+> model_Sqrt_20q_Lg2 <- update(model_Sqrt_20q_Lg, . ~ . + log(Євро))
+
+> # AIC_diff = 13.73534
+> summary(model_Sqrt_20q_Lg2)
+
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро), 
+    data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.2455 -2.4694 -0.0403  2.4520  9.3849 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.750e+03  2.377e+03   4.101 0.000162 ***
+Євро         -7.075e+01  1.781e+01  -3.972 0.000243 ***
+Долар         2.632e+02  5.242e+01   5.020 7.86e-06 ***
+ІФС          -1.255e+02  6.425e+01  -1.953 0.056798 .  
+ІГР          -1.468e+01  6.433e+00  -2.281 0.027116 *  
+ІЦБ           8.560e-01  1.520e-01   5.632 9.65e-07 ***
+ЧисНасел      2.019e-04  9.368e-05   2.155 0.036302 *  
+ІЦЖВ          8.675e-01  4.760e-01   1.823 0.074742 .  
+ІЦЖП          2.312e+00  8.595e-01   2.690 0.009868 ** 
+Кімнатність2  1.548e+01  1.270e+00  12.192 3.68e-16 ***
+Кімнатність3  3.283e+01  1.270e+00  25.859  < 2e-16 ***
+log(Долар)   -6.863e+03  1.383e+03  -4.962 9.55e-06 ***
+log(Євро)     2.046e+03  5.450e+02   3.754 0.000478 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.015 on 47 degrees of freedom
+Multiple R-squared:  0.9548,	Adjusted R-squared:  0.9432 
+F-statistic: 82.71 on 12 and 47 DF,  p-value: < 2.2e-16
+
+
+> # ======== НОВА МОДЕЛЬ 3 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg2, which = 1) 
+
+> residuals_plot(model_Sqrt_20q_Lg2)
+
+> residuals_regressors_plot(model_Sqrt_20q_Lg2, c(3, 4), type = "rstudent")
+
+> # Для рівнів Кімнатності зник зсув середнього від нуля.
+> # ІЦЖВ - структурний зсув? 
+> 
+> av_plots(model_Sqrt_20q_Lg2)
+
+> crPlots(model_Sqrt_20q_Lg2)
+
+> par(mfrow = c(1, 1))
+
+> resettest(model_Sqrt_20q_Lg2, power = 2) # p-value = 0.8151
+
+	RESET test
+
+data:  model_Sqrt_20q_Lg2
+RESET = 0.055302, df1 = 1, df2 = 46, p-value = 0.8151
+
+
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg2, which = 3)
+
+> bptest(model_Sqrt_20q_Lg2) # p-value = 0.004985
+
+	studentized Breusch-Pagan test
+
+data:  model_Sqrt_20q_Lg2
+BP = 28.309, df = 12, p-value = 0.004985
+
+
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg2) ~ df_longq$Кімнатність) # p-value = 0.1142
+
+	Bartlett test of homogeneity of variances
+
+data:  residuals(model_Sqrt_20q_Lg2) by df_longq$Кімнатність
+Bartlett's K-squared = 4.3404, df = 2, p-value = 0.1142
+
+
+> leveneTest(residuals(model_Sqrt_20q_Lg2) ~ df_longq$Кімнатність) # p-value = 0.03724      
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  3.4879 0.03724 *
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> observe_transforms_x(model_Sqrt_20q_Lg2, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     350.4252 350.4333 352.4242 350.4154 352.4149 350.4736 352.4235 365.7898 350.4252
+Долар    350.4252 350.6139 351.3560 350.1055 351.4358 351.2881 351.2731 374.1832 350.4252
+ІФС      350.4252 348.7094 346.0576 353.2511 345.9538 346.4005 348.0624 347.2727 346.5350
+ІГР      350.4252 351.9564 350.9013 349.7858 351.7432 356.1264 350.5136 353.7283 350.6782
+ІЦБ      350.4252 350.2772 350.7135 350.7538 350.4380 349.9046 350.9593 350.1408 350.7987
+ЧисНасел 350.4252 350.4239 352.2695 350.4278 352.2727 350.4200 352.2663 350.4226 352.2685
+ІЦЖВ     350.4252 350.3690 350.6885 350.5360 350.7469 350.1976 350.6336 350.3123 350.6698
+ІЦЖП     350.4252 350.3105 349.8916 350.6463 349.9814 349.9512 349.8071 350.1932 349.8628
+
+$AIC_diffs
+         linear         sqrt      +sqrt       square     +square      inverse    +inverse           log
+Євро          0 -0.008137270 -1.9990033  0.009822191 -1.98968870 -0.048422310 -1.99829623 -15.364623477
+Долар         0 -0.188672112 -0.9308413  0.319697626 -1.01063984 -0.862877318 -0.84787093 -23.758020928
+ІФС           0  1.715801872  4.3675525 -2.825914810  4.47136749  4.024659448  2.36284580   3.152512471
+ІГР           0 -1.531222951 -0.4761073  0.639440246 -1.31803073 -5.701208566 -0.08841833  -3.303099743
+ІЦБ           0  0.147978953 -0.2882588 -0.328573541 -0.01276813  0.520622252 -0.53407312   0.284412609
+ЧисНасел      0  0.001297192 -1.8443180 -0.002584235 -1.84749526  0.005208759 -1.84112053   0.002597733
+ІЦЖВ          0  0.056211465 -0.2632762 -0.110777060 -0.32166295  0.227612266 -0.20835992   0.112915092
+ІЦЖП          0  0.114679095  0.5335782 -0.221101367  0.44379042  0.474035563  0.61813908   0.231993608
+                  +log
+Євро      1.193712e-12
+Долар     9.094947e-13
+ІФС       3.890214e+00
+ІГР      -2.529956e-01
+ІЦБ      -3.734576e-01
+ЧисНасел -1.843254e+00
+ІЦЖВ     -2.445882e-01
+ІЦЖП      5.623631e-01
+
+
+> model_Sqrt_20q_Lg2Sq <- update(model_Sqrt_20q_Lg2, . ~ . + I(ІФС^2))
+
+> # AIC_diff = 4.47136749       
+> summary(model_Sqrt_20q_Lg2Sq)
+
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2), data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.5719 -3.0289 -0.1636  1.8941  9.3615 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.982e+03  2.279e+03   4.380 6.80e-05 ***
+Євро         -6.820e+01  1.710e+01  -3.989 0.000236 ***
+Долар         2.594e+02  5.023e+01   5.164 5.06e-06 ***
+ІФС          -5.970e+02  2.150e+02  -2.777 0.007918 ** 
+ІГР          -1.130e+01  6.335e+00  -1.784 0.081072 .  
+ІЦБ           8.587e-01  1.456e-01   5.899 4.10e-07 ***
+ЧисНасел      1.148e-04  9.745e-05   1.179 0.244637    
+ІЦЖВ          1.220e+00  4.812e-01   2.535 0.014700 *  
+ІЦЖП          1.983e+00  8.357e-01   2.373 0.021884 *  
+Кімнатність2  1.548e+01  1.216e+00  12.730  < 2e-16 ***
+Кімнатність3  3.283e+01  1.216e+00  27.000  < 2e-16 ***
+log(Долар)   -6.776e+03  1.325e+03  -5.113 6.01e-06 ***
+log(Євро)     1.976e+03  5.229e+02   3.779 0.000452 ***
+I(ІФС^2)      8.291e+03  3.622e+03   2.289 0.026729 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.845 on 46 degrees of freedom
+Multiple R-squared:  0.9594,	Adjusted R-squared:  0.9479 
+F-statistic: 83.64 on 13 and 46 DF,  p-value: < 2.2e-16
+
+
+> waldtest(model_Sqrt_20q_Lg2, model_Sqrt_20q_Lg2Sq, 
++          vcov = function(x) vcovCL(x, cluster = df_longq$Кімнатність)) # +
+Wald test
+
+Model 1: sqrt(Ціна) ~ Євро + Долар + ІФС + ІГР + ІЦБ + 
+    ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність + 
+    log(Долар) + log(Євро)
+Model 2: sqrt(Ціна) ~ Євро + Долар + ІФС + ІГР + ІЦБ + 
+    ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність + 
+    log(Долар) + log(Євро) + I(ІФС^2)
+  Res.Df Df      F  Pr(>F)  
+1     47                    
+2     46  1 5.2696 0.02631 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> # ======== НОВА МОДЕЛЬ 4 ========
+> # ЛІНІЙНІСТЬ
+> plot(model_Sqrt_20q_Lg2Sq, which = 1) # Гірше?
+
+> residuals_plot(model_Sqrt_20q_Lg2Sq) 
+
+> residuals_regressors_plot(model_Sqrt_20q_Lg2Sq, c(2, 4), type = "rstudent")
+
+> # З'явився зсув медіани для К3.
+> 
+> av_plots(model_Sqrt_20q_Lg2Sq) 
+
+> crPlots(model_Sqrt_20q_Lg2Sq)
+
+> # Виправили дугу для ІФС.
+> par(mfrow = c(1, 1))
+
+> resettest(model_Sqrt_20q_Lg2Sq, power = 2) # p-value = 0.9331
+
+	RESET test
+
+data:  model_Sqrt_20q_Lg2Sq
+RESET = 0.0071222, df1 = 1, df2 = 45, p-value = 0.9331
+
+
+> # ГОМОСКЕДАСТИЧНІСТЬ 
+> # Загальна варіабельність
+> plot(model_Sqrt_20q_Lg2Sq, which = 3)
+
+> bptest(model_Sqrt_20q_Lg2Sq) # p-value = 0.001666
+
+	studentized Breusch-Pagan test
+
+data:  model_Sqrt_20q_Lg2Sq
+BP = 33.065, df = 13, p-value = 0.001666
+
+
+> # Міжгрупова варіабельність
+> bartlett.test(residuals(model_Sqrt_20q_Lg2Sq) ~ df_longq$Кімнатність) # p-value = 0.2123
+
+	Bartlett test of homogeneity of variances
+
+data:  residuals(model_Sqrt_20q_Lg2Sq) by df_longq$Кімнатність
+Bartlett's K-squared = 3.0994, df = 2, p-value = 0.2123
+
+
+> leveneTest(residuals(model_Sqrt_20q_Lg2Sq) ~ df_longq$Кімнатність) # p-value = 0.09857      
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  2.4138 0.09857 .
+      57                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> observe_transforms_x(model_Sqrt_20q_Lg2Sq, regressors = numeric_preds)
+$AIC_values
+           linear     sqrt    +sqrt   square  +square  inverse +inverse      log     +log
+Євро     345.9538 346.0104 347.7879 345.8549 347.7433 346.2119 347.8295 361.7816 345.9538
+Долар    345.9538 346.0550 347.6809 345.8131 347.7210 346.4773 347.6376 371.3869 345.9538
+ІФС      345.9538 345.8968 347.8953 353.2511 345.9538 347.6498 347.9407 346.1584 347.9400
+ІГР      345.9538 347.0306 346.7433 345.4994 347.4766 349.8034 346.0581 348.2654 346.4710
+ІЦБ      345.9538 345.8435 347.0669 346.2008 346.9618 345.5706 347.1585 345.7426 347.0989
+ЧисНасел 345.9538 345.9532 347.8474 345.9551 347.8504 345.9512 347.8443 345.9525 347.8464
+ІЦЖВ     345.9538 345.8775 346.4793 346.1105 346.4611 345.6578 346.4967 345.8027 346.4852
+ІЦЖП     345.9538 345.8250 343.9903 346.2031 343.9923 345.4223 343.9948 345.6933 343.9911
+
+$AIC_diffs
+         linear          sqrt      +sqrt       square       +square      inverse   +inverse           log
+Євро          0 -0.0565887018 -1.8340546  0.098921255 -1.789511e+00 -0.258056332 -1.8756250 -15.827735697
+Долар         0 -0.1011636867 -1.7270929  0.140747164 -1.767205e+00 -0.523485400 -1.6837875 -25.433017510
+ІФС           0  0.0570424107 -1.9414242 -7.297282303  5.684342e-14 -1.695949855 -1.9868323  -0.204567633
+ІГР           0 -1.0767375003 -0.7894837  0.454409909 -1.522723e+00 -3.849534168 -0.1042426  -2.311569813
+ІЦБ           0  0.1102956638 -1.1130620 -0.246936130 -1.007981e+00  0.383228204 -1.2046378   0.211228745
+ЧисНасел      0  0.0006441247 -1.8935513 -0.001275517 -1.896591e+00  0.002601872 -1.8904719   0.001292483
+ІЦЖВ          0  0.0763083178 -0.5254390 -0.156664968 -5.072925e-01  0.296038839 -0.5428161   0.151145498
+ІЦЖП          0  0.1288816199  1.9635669 -0.249248310  1.961496e+00  0.531559058  1.9590126   0.260505881
+                  +log
+Євро      1.307399e-12
+Долар     9.094947e-13
+ІФС      -1.986214e+00
+ІГР      -5.171558e-01
+ІЦБ      -1.145036e+00
+ЧисНасел -1.892529e+00
+ІЦЖВ     -5.313217e-01
+ІЦЖП      1.962764e+00
+
+
+> # Проблеми з гомоскедастичністю? Графіки виглядають нормально.
+> # БП-тест міг провалити тест через залежність даних.
+> # Модель систематично недооц .... [TRUNCATED] 
+[1] 60 20 18
+
+> shapiro.test(residuals(model_Sqrt_20q_Lg2Sq)) # p-value = 0.312
+
+	Shapiro-Wilk normality test
+
+data:  residuals(model_Sqrt_20q_Lg2Sq)
+W = 0.97691, p-value = 0.312
+
+
+> ad.test(residuals(model_Sqrt_20q_Lg2Sq)) # p-value = 0.3029
+
+	Anderson-Darling normality test
+
+data:  residuals(model_Sqrt_20q_Lg2Sq)
+A = 0.42751, p-value = 0.3029
+
+
+> # ==== 5) АВТОКОРЕЛЯЦІЯ ====
+> time_series_residuals(model_Sqrt_20q_Lg2Sq)
+
+> resplot_matrix_cr(model_Sqrt_20q_Lg2Sq) # e1 та е2 корелюють, е3 з іншими - навряд.
+
+> cor_residuals_cr(model_Sqrt_20q_Lg2Sq) # Підверджено думку вище.
+           e_1k      e_2k       e_3k
+e_1k  1.0000000 0.7639577 -0.2276805
+e_2k  0.7639577 1.0000000  0.1473730
+e_3k -0.2276805 0.1473730  1.0000000
+
+> acf_cr(model_Sqrt_20q_Lg2Sq) # Часової автокореляції немає.
+
+> # Отже, використовуємо SE DK.
+> summary(model_Sqrt_20q_Lg2Sq)
+
+Call:
+lm(formula = sqrt(Ціна) ~ Євро + Долар + ІФС + 
+    ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2), data = df_longq)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7.5719 -3.0289 -0.1636  1.8941  9.3615 
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   9.982e+03  2.279e+03   4.380 6.80e-05 ***
+Євро         -6.820e+01  1.710e+01  -3.989 0.000236 ***
+Долар         2.594e+02  5.023e+01   5.164 5.06e-06 ***
+ІФС          -5.970e+02  2.150e+02  -2.777 0.007918 ** 
+ІГР          -1.130e+01  6.335e+00  -1.784 0.081072 .  
+ІЦБ           8.587e-01  1.456e-01   5.899 4.10e-07 ***
+ЧисНасел      1.148e-04  9.745e-05   1.179 0.244637    
+ІЦЖВ          1.220e+00  4.812e-01   2.535 0.014700 *  
+ІЦЖП          1.983e+00  8.357e-01   2.373 0.021884 *  
+Кімнатність2  1.548e+01  1.216e+00  12.730  < 2e-16 ***
+Кімнатність3  3.283e+01  1.216e+00  27.000  < 2e-16 ***
+log(Долар)   -6.776e+03  1.325e+03  -5.113 6.01e-06 ***
+log(Євро)     1.976e+03  5.229e+02   3.779 0.000452 ***
+I(ІФС^2)      8.291e+03  3.622e+03   2.289 0.026729 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.845 on 46 degrees of freedom
+Multiple R-squared:  0.9594,	Adjusted R-squared:  0.9479 
+F-statistic: 83.64 on 13 and 46 DF,  p-value: < 2.2e-16
+
+
+> model_feolsq <- feols(formula(model_Sqrt_20q_Lg2Sq), data = df_long_dateq, 
++                      panel.id = ~ Кімнатність + Дата)
+
+> robustSE_diff(model_feolsq, vcov = "DK") # SE збільшується не більше ніж у 1.1 разів.
+SE ordinary 
+ (Intercept)         Євро        Долар          ІФС          ІГР          ІЦБ     ЧисНасел         ІЦЖВ 
+2.279005e+03 1.709608e+01 5.023275e+01 2.150229e+02 6.335424e+00 1.455696e-01 9.745230e-05 4.811821e-01 
+        ІЦЖП Кімнатність2 Кімнатність3   log(Долар)    log(Євро)  I(I(ІФС^2)) 
+8.356599e-01 1.216003e+00 1.216003e+00 1.325123e+03 5.229081e+02 3.622498e+03 
+
+SE robust 
+ (Intercept)         Євро        Долар          ІФС          ІГР          ІЦБ     ЧисНасел         ІЦЖВ 
+2.444839e+03 1.261791e+01 4.767618e+01 1.859010e+02 6.743273e+00 1.292714e-01 1.047530e-04 5.052560e-01 
+        ІЦЖП Кімнатність2 Кімнатність3   log(Долар)    log(Євро)  I(I(ІФС^2)) 
+8.311703e-01 7.058606e-01 1.991707e+00 1.237660e+03 3.972133e+02 3.827971e+03 
+
+SE diff 
+  (Intercept)          Євро         Долар           ІФС           ІГР           ІЦБ      ЧисНасел 
+ 1.658342e+02 -4.478163e+00 -2.556567e+00 -2.912190e+01  4.078488e-01 -1.629824e-02  7.300698e-06 
+         ІЦЖВ          ІЦЖП  Кімнатність2  Кімнатність3    log(Долар)     log(Євро)   I(I(ІФС^2)) 
+ 2.407388e-02 -4.489611e-03 -5.101423e-01  7.757038e-01 -8.746349e+01 -1.256948e+02  2.054732e+02 
+
+
+SE ratio 
+ (Intercept)         Євро        Долар          ІФС          ІГР          ІЦБ     ЧисНасел         ІЦЖВ 
+   1.0727661    0.7380591    0.9491056    0.8645637    1.0643759    0.8880382    1.0749156    1.0500307 
+        ІЦЖП Кімнатність2 Кімнатність3   log(Долар)    log(Євро)  I(I(ІФС^2)) 
+   0.9946275    0.5804761    1.6379129    0.9339960    0.7596236    1.0567214 
+
+> # ==== 6) ВІДБІР ЗМІННИХ ====
+> all_models <- regsubsets(formula(model_Sqrt_20q_Lg2Sq), 
++                          data = df_longq, nbest = 3, nvma .... [TRUNCATED] 
+
+> best_models <- best_models_summary(all_models, 20)
+========== Adj R² ==========
+1. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9479 (p = 14)
+2. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9475 (p = 13)
+3. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9455 (p = 13)
+4. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9446 (p = 12)
+5. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9440 (p = 12)
+6. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9433 (p = 11)
+7. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9432 (p = 13)
+8. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9422 (p = 12)
+9. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9387 (p = 11)
+10. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9382 (p = 10)
+11. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9373 (p = 11)
+12. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + I(ІФС^2)  | Adj R² = 0.9326 (p = 10)
+13. Євро + Долар + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9323 (p = 10)
+14. Євро + Долар + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9311 (p = 9)
+15. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | Adj R² = 0.9274 (p = 9)
+16. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9261 (p = 9)
+17. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | Adj R² = 0.9205 (p = 8)
+18. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Євро)  | Adj R² = 0.9205 (p = 8)
+19. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | Adj R² = 0.9200 (p = 8)
+20. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | Adj R² = 0.9162 (p = 7)
+
+========== BIC ==========
+1. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -138.34 (p = 11)
+2. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -137.25 (p = 13)
+3. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -136.85 (p = 12)
+4. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -136.20 (p = 12)
+5. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -136.06 (p = 10)
+6. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -135.02 (p = 13)
+7. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -134.94 (p = 14)
+8. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -134.26 (p = 12)
+9. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -133.65 (p = 11)
+10. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -132.56 (p = 13)
+11. Євро + Долар + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -132.42 (p = 9)
+12. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | BIC = -132.23 (p = 11)
+13. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + I(ІФС^2)  | BIC = -130.79 (p = 10)
+14. Євро + Долар + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -130.56 (p = 10)
+15. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | BIC = -129.25 (p = 9)
+16. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | BIC = -128.24 (p = 9)
+17. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | BIC = -126.73 (p = 8)
+18. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Євро)  | BIC = -126.71 (p = 8)
+19. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | BIC = -126.56 (p = 7)
+20. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | BIC = -126.37 (p = 8)
+
+========== Cp ==========
+1. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 14.00 (p = 14)
+2. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 13.39 (p = 13)
+3. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 15.18 (p = 13)
+4. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 15.07 (p = 12)
+5. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 15.63 (p = 12)
+6. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 17.24 (p = 13)
+7. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 15.34 (p = 11)
+8. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 17.32 (p = 12)
+9. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 19.67 (p = 11)
+10. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 19.32 (p = 10)
+11. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Cp = 21.05 (p = 11)
+12. Євро + Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + I(ІФС^2)  | Cp = 24.76 (p = 10)
+13. Євро + Долар + ІЦБ + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 25.01 (p = 10)
+14. Євро + Долар + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 25.48 (p = 9)
+15. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | Cp = 29.14 (p = 9)
+16. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Cp = 30.35 (p = 9)
+17. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | Cp = 35.43 (p = 8)
+18. Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Євро)  | Cp = 35.46 (p = 8)
+19. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар)  | Cp = 35.90 (p = 8)
+20. Євро + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3  | Cp = 39.28 (p = 7)
+
+> # 1. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  
+> # | Adj R² = 0.94 .... [TRUNCATED] 
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   9982.049264 2444.839241  4.08291 6.3402e-04 ***
+Євро           -68.203467   12.617915 -5.40529 3.2416e-05 ***
+Долар          259.392173   47.676180  5.44071 2.9996e-05 ***
+ІФС           -597.045095  185.900961 -3.21163 4.5928e-03 ** 
+ІГР            -11.300447    6.743273 -1.67581 1.1015e-01    
+ІЦБ              0.858726    0.129271  6.64281 2.3561e-06 ***
+ЧисНасел         0.000115    0.000105  1.09641 2.8660e-01    
+ІЦЖВ             1.219920    0.505256  2.41446 2.6010e-02 *  
+ІЦЖП             1.982950    0.831170  2.38573 2.7612e-02 *  
+Кімнатність2    15.479132    0.705861 21.92945 5.9322e-15 ***
+Кімнатність3    32.831611    1.991707 16.48416 1.0355e-12 ***
+log(Долар)   -6775.575613 1237.659745 -5.47451 2.7859e-05 ***
+log(Євро)     1976.081816  397.213308  4.97486 8.4092e-05 ***
+I(I(ІФС^2))   8291.345250 3827.970775  2.16599 4.3239e-02 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.36696   Adj. R2: 0.947941
+
+> lm1 <- update(model_feolsq, . ~ . - ЧисНасел)
+
+> summary(lm1, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)    11515.367053 2231.127323  5.16123 5.5530e-05 ***
+Євро             -69.902767   13.664918 -5.11549 6.1466e-05 ***
+Долар            281.829077   51.451651  5.47755 2.7674e-05 ***
+ІФС             -685.900726  198.303420 -3.45884 2.6297e-03 ** 
+ІГР              -12.087549    7.522846 -1.60678 1.2459e-01    
+ІЦБ                0.802878    0.097882  8.20255 1.1538e-07 ***
+ІЦЖВ               1.418085    0.462064  3.06902 6.3161e-03 ** 
+ІЦЖП               2.032653    0.920511  2.20818 3.9720e-02 *  
+Кімнатність2      15.479132    0.698311 22.16653 4.8715e-15 ***
+Кімнатність3      32.831611    1.970404 16.66237 8.5481e-13 ***
+log(Долар)     -7365.446394 1339.887674 -5.49706 2.6519e-05 ***
+log(Євро)       2027.503114  419.713830  4.83068 1.1617e-04 ***
+I(I(I(ІФС^2)))  9957.518331 4133.382929  2.40905 2.6305e-02 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.41741   Adj. R2: 0.94751
+
+> lm1 <- update(lm1, . ~ . - ІГР)
+
+> summary(lm1, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                      Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)       10507.771611 1812.179582  5.79842 1.3809e-05 ***
+Євро                -64.223656   10.163381 -6.31912 4.5905e-06 ***
+Долар               257.103252   41.505555  6.19443 5.9571e-06 ***
+ІФС                -730.119420  224.930811 -3.24597 4.2520e-03 ** 
+ІЦБ                   0.735279    0.076868  9.56551 1.0712e-08 ***
+ІЦЖВ                  1.918701    0.283029  6.77918 1.7864e-06 ***
+ІЦЖП                  0.824821    0.376798  2.18903 4.1284e-02 *  
+Кімнатність2         15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3         32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)        -6746.434965 1083.897629 -6.22424 5.5963e-06 ***
+log(Євро)          1892.967837  311.948435  6.06821 7.7712e-06 ***
+I(I(I(I(ІФС^2)))) 11871.664810 3974.341884  2.98708 7.5753e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.54766   Adj. R2: 0.944611
+
+> # Це модель 4.3.
+> 
+> 
+> # 5. Євро + Долар + ІФС + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² .... [TRUNCATED] 
+
+> summary(lm2, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)     8075.194405 1970.880852  4.09725 6.1359e-04 ***
+Євро             -54.939505   13.419923 -4.09388 6.1833e-04 ***
+Долар            210.928773   44.474345  4.74271 1.4160e-04 ***
+ІФС             -579.171393  254.923832 -2.27194 3.4899e-02 *  
+ІЦБ                0.878046    0.119421  7.35256 5.7337e-07 ***
+ЧисНасел           0.000126    0.000097  1.29772 2.0992e-01    
+ІЦЖВ               2.187978    0.241479  9.06075 2.5149e-08 ***
+Кімнатність2      15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3      32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)     -5534.591631 1160.015901 -4.77113 1.3282e-04 ***
+log(Євро)       1620.806131  410.140845  3.95183 8.5532e-04 ***
+I(I(I(ІФС^2)))  9763.876477 4383.210779  2.22756 3.8193e-02 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.56709   Adj. R2: 0.944003
+
+> lm2 <- update(lm2, . ~ . - ЧисНасел)
+
+> summary(lm2, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                      Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)        9721.143794 1742.376626  5.57924 2.2173e-05 ***
+Євро                -56.693812   13.796985 -4.10914 5.9715e-04 ***
+Долар               234.718421   44.409349  5.28534 4.2201e-05 ***
+ІФС                -682.006320  242.902708 -2.80773 1.1233e-02 *  
+ІЦБ                   0.808884    0.088219  9.16909 2.0886e-08 ***
+ІЦЖВ                  2.422525    0.094460 25.64594 3.3247e-16 ***
+Кімнатність2         15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3         32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Долар)        -6162.090269 1159.910044 -5.31256 3.9744e-05 ***
+log(Євро)          1676.140673  419.293316  3.99754 7.7051e-04 ***
+I(I(I(I(ІФС^2)))) 11740.176877 4058.290314  2.89289 9.3232e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.62551   Adj. R2: 0.943334
+
+> # Це модель 6.1.
+> 
+> 
+> # 7. Євро + Долар + ІФС + ІГР + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj  .... [TRUNCATED] 
+
+> summary(lm3, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   9749.820447 2855.462689  3.41445 2.9079e-03 ** 
+Євро           -70.747773   20.540619 -3.44429 2.7179e-03 ** 
+Долар          263.154128   56.624379  4.64736 1.7561e-04 ***
+ІФС           -125.474031   66.626967 -1.88323 7.5070e-02 .  
+ІГР            -14.675278    6.740694 -2.17712 4.2284e-02 *  
+ІЦБ              0.856030    0.132459  6.46260 3.4097e-06 ***
+ЧисНасел         0.000202    0.000115  1.76044 9.4423e-02 .  
+ІЦЖВ             0.867516    0.518518  1.67307 1.1070e-01    
+ІЦЖП             2.311874    0.882239  2.62046 1.6833e-02 *  
+Кімнатність2    15.479132    0.698311 22.16653 4.8715e-15 ***
+Кімнатність3    32.831611    1.970404 16.66237 8.5481e-13 ***
+log(Долар)   -6863.143794 1487.671724 -4.61335 1.8965e-04 ***
+log(Євро)     2046.151756  639.463666  3.19979 4.7164e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.55352   Adj. R2: 0.943246
+
+> lm3 <- update(lm3, . ~ . - ІЦЖВ)
+
+> summary(lm3, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)  10224.384940 2651.344656  3.85630 1.0639e-03 ** 
+Євро           -80.178841   20.039234 -4.00109 7.6428e-04 ***
+Долар          284.776486   49.075057  5.80288 1.3678e-05 ***
+ІФС           -196.898835   52.647169 -3.73997 1.3874e-03 ** 
+ІГР            -20.120649    5.088508 -3.95414 8.5082e-04 ***
+ІЦБ              0.815121    0.169007  4.82299 1.1820e-04 ***
+ЧисНасел         0.000246    0.000099  2.48846 2.2275e-02 *  
+ІЦЖП             3.641081    0.449400  8.10209 1.3875e-07 ***
+Кімнатність2    15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3    32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)   -7418.981862 1291.845049 -5.74293 1.5560e-05 ***
+log(Євро)     2307.251569  641.048248  3.59919 1.9120e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.67694   Adj. R2: 0.940501
+
+> # -8. Євро + Долар + ІФС + ІГР + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² = 0.9422 (p = 12)
+> lm4 <- u .... [TRUNCATED] 
+
+> summary(lm3, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)  10224.384940 2651.344656  3.85630 1.0639e-03 ** 
+Євро           -80.178841   20.039234 -4.00109 7.6428e-04 ***
+Долар          284.776486   49.075057  5.80288 1.3678e-05 ***
+ІФС           -196.898835   52.647169 -3.73997 1.3874e-03 ** 
+ІГР            -20.120649    5.088508 -3.95414 8.5082e-04 ***
+ІЦБ              0.815121    0.169007  4.82299 1.1820e-04 ***
+ЧисНасел         0.000246    0.000099  2.48846 2.2275e-02 *  
+ІЦЖП             3.641081    0.449400  8.10209 1.3875e-07 ***
+Кімнатність2    15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3    32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)   -7418.981862 1291.845049 -5.74293 1.5560e-05 ***
+log(Євро)     2307.251569  641.048248  3.59919 1.9120e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.67694   Adj. R2: 0.940501
+
+> lm4 <- update(lm4, . ~ . - ІГР)
+
+> summary(lm4, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                      Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)        9721.143794 1742.376626  5.57924 2.2173e-05 ***
+Євро                -56.693812   13.796985 -4.10914 5.9715e-04 ***
+Долар               234.718421   44.409349  5.28534 4.2201e-05 ***
+ІФС                -682.006320  242.902708 -2.80773 1.1233e-02 *  
+ІЦБ                   0.808884    0.088219  9.16909 2.0886e-08 ***
+ІЦЖВ                  2.422525    0.094460 25.64594 3.3247e-16 ***
+Кімнатність2         15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3         32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Долар)        -6162.090269 1159.910044 -5.31256 3.9744e-05 ***
+log(Євро)          1676.140673  419.293316  3.99754 7.7051e-04 ***
+I(I(I(I(ІФС^2)))) 11740.176877 4058.290314  2.89289 9.3232e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.62551   Adj. R2: 0.943334
+
+> # Це модель 6.1 (було вже).
+> 
+> 
+> # 9. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + ІЦЖП + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R .... [TRUNCATED] 
+
+> summary(lm4, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   7828.888079 2141.231794  3.65625 1.6790e-03 ** 
+Євро           -58.352647   14.800550 -3.94260 8.7354e-04 ***
+Долар          216.162387   41.410990  5.21993 4.8760e-05 ***
+ІЦБ              0.776788    0.099865  7.77840 2.5372e-07 ***
+ЧисНасел         0.000229    0.000083  2.76411 1.2351e-02 *  
+ІЦЖВ             1.540207    0.386991  3.97995 8.0210e-04 ***
+ІЦЖП             0.595816    0.500615  1.19017 2.4864e-01    
+Кімнатність2    15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3    32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Долар)   -5664.808310 1082.400243 -5.23356 4.7312e-05 ***
+log(Євро)     1722.320759  461.995256  3.72801 1.4257e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.76993   Adj. R2: 0.93873
+
+> lm4 <- update(lm4, . ~ . - ІЦЖП)
+
+> summary(lm4, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   7353.595419 2178.861432  3.37497 3.1794e-03 ** 
+Євро           -55.895163   15.189589 -3.67983 1.5912e-03 ** 
+Долар          205.618961   42.493137  4.83887 1.1405e-04 ***
+ІЦБ              0.852038    0.109406  7.78785 2.4924e-07 ***
+ЧисНасел         0.000240    0.000088  2.73374 1.3192e-02 *  
+ІЦЖВ             1.904854    0.245057  7.77312 2.5626e-07 ***
+Кімнатність2    15.479132    0.677038 22.86303 2.7616e-15 ***
+Кімнатність3    32.831611    1.910378 17.18592 4.9172e-13 ***
+log(Долар)   -5391.447576 1108.347473 -4.86440 1.0770e-04 ***
+log(Євро)     1653.981760  471.282508  3.50953 2.3441e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.82333   Adj. R2: 0.938242
+
+> # Це модель 10.5.
+> 
+> 
+> # -11. Євро + Долар + ІЦБ + ЧисНасел + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро) + I(ІФС^2)  | Adj R² =  .... [TRUNCATED] 
+
+> summary(lm5, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)   7358.510173 2078.822112  3.539750 2.1886e-03 ** 
+Євро           -53.701769   16.466450 -3.261284 4.1082e-03 ** 
+Долар          202.322237   41.765853  4.844202 1.1269e-04 ***
+ІЦБ              0.834850    0.109653  7.613598 3.4684e-07 ***
+ЧисНасел         0.000224    0.000105  2.127853 4.6661e-02 *  
+ІЦЖВ             1.921939    0.260879  7.367180 5.5732e-07 ***
+Кімнатність2    15.479132    0.683911 22.633244 3.3244e-15 ***
+Кімнатність3    32.831611    1.929773 17.013197 5.8915e-13 ***
+log(Долар)   -5304.362795 1092.000155 -4.857474 1.0939e-04 ***
+log(Євро)     1588.937165  509.184909  3.120550 5.6310e-03 ** 
+I(I(ІФС^2))    369.482651  826.752833  0.446908 6.5999e-01    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.81484   Adj. R2: 0.937261
+
+> # 14.11. Євро + Долар + ІЦБ + ІЦЖВ + Кімнатність2 + Кімнатність3 + log(Долар) + log(Євро)  | Adj R² = 0.9311 (p = 9)
+> lm5 <- feols(sqrt(Ціна) ~ Євр .... [TRUNCATED] 
+
+> summary(lm5, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)  11165.533051 2190.410054  5.09746 6.3979e-05 ***
+Євро           -64.363158   19.797749 -3.25103 4.2039e-03 ** 
+Долар          268.569437   53.314178  5.03749 7.3121e-05 ***
+ІЦБ              0.694759    0.159083  4.36727 3.3150e-04 ***
+ІЦЖВ             2.340400    0.144894 16.15249 1.4866e-12 ***
+Кімнатність2    15.479132    0.670367 23.09053 2.3023e-15 ***
+Кімнатність3    32.831611    1.891556 17.35693 4.1179e-13 ***
+log(Долар)   -7050.720465 1417.390239 -4.97444 8.4172e-05 ***
+log(Євро)     1915.592259  614.257477  3.11855 5.6562e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 4.07785   Adj. R2: 0.931124
+
+> # Вилучимо з розгляду lm3, оскільки вона містить ІГР ("погана" змінна).
+> final_modelsq <- list(lm1, lm2, lm4, lm5)
+
+> final_modelsq <- lapply(final_modelsq, function(m) feols(clean_formula(m), 
++                                                          data = df_lon .... [TRUNCATED] 
+
+> # ======== 7) ЕФЕКТИ ВЗАЄМОДІЇ ========
+> # Працюємо із чотирма моделями.
+> lm1 <- final_modelsq[[1]]
+
+> lm2 <- final_modelsq[[2]]
+
+> lm3 <- final_modelsq[[3]]
+
+> lm4 <- final_modelsq[[4]]
+
+> #### lm1 ####
+> lm1 <- update(lm1, . ~ . - I(I(ІФС^2)) + ІФС^2)
+
+> summary(lm1, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)  10507.771611 1812.179582  5.79842 1.3809e-05 ***
+Євро           -64.223656   10.163381 -6.31912 4.5905e-06 ***
+Долар          257.103252   41.505555  6.19443 5.9571e-06 ***
+ІФС           -730.119420  224.930811 -3.24597 4.2520e-03 ** 
+ІЦБ              0.735279    0.076868  9.56551 1.0712e-08 ***
+ІЦЖВ             1.918701    0.283029  6.77918 1.7864e-06 ***
+ІЦЖП             0.824821    0.376798  2.18903 4.1284e-02 *  
+Кімнатність2    15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3    32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)   -6746.434965 1083.897629 -6.22424 5.5963e-06 ***
+log(Євро)     1892.967837  311.948435  6.06821 7.7712e-06 ***
+I(ІФС^2)     11871.664810 3974.341884  2.98708 7.5753e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.54766   Adj. R2: 0.944611
+
+> aic_base <- AIC(lm1)
+
+> bic_base <- BIC(lm1)
+
+> lm1_lmcl <- lm(formula(lm1), data = df_longq)
+
+> interactions_result <- observe_best_interactions(lm1_lmcl, df_long_dateq, top_n = 30)
+
+========== Найкращі 30 взаємодій ==========
+1. Євро / Долар | ΔAIC = 11.25 | p = 0.0013 
+2. Долар / Євро | ΔAIC = 10.55 | p = 0.0018 
+3. Євро × Долар | ΔAIC = 9.42 | p = 0.0029 
+4. Долар × ІЦЖВ | ΔAIC = 8.70 | p = 0.0040 
+5. ІЦЖВ / Долар | ΔAIC = 7.44 | p = 0.0068 
+6. ІЦЖВ / Євро | ΔAIC = 4.88 | p = 0.0209 
+7. ІЦБ / Долар | ΔAIC = 4.86 | p = 0.0211 
+8. Долар × ІЦБ | ΔAIC = 4.53 | p = 0.0244 
+9. Євро × ІЦЖВ | ΔAIC = 4.53 | p = 0.0245 
+10. ІЦЖВ × ІЦЖП | ΔAIC = 4.19 | p = 0.0285 
+11. ІЦБ × Кімнатність | ΔAIC = 3.88 | p = 0.0488 
+12. Євро / ІЦЖВ | ΔAIC = 2.25 | p = 0.0695 
+13. ІЦЖП / Євро | ΔAIC = 1.73 | p = 0.0891 
+14. Євро × ІЦЖП | ΔAIC = 1.35 | p = 0.1072 
+15. Долар × ІЦЖП | ΔAIC = 1.25 | p = 0.1122 
+16. ІЦБ × ІЦЖВ | ΔAIC = 1.08 | p = 0.1222 
+17. ІЦЖП / Долар | ΔAIC = 0.92 | p = 0.1328 
+18. ІЦБ / Євро | ΔAIC = 0.90 | p = 0.1336 
+19. Євро × ІЦБ | ΔAIC = 0.50 | p = 0.1643 
+20. ІЦЖВ / ІЦБ | ΔAIC = 0.23 | p = 0.1883 
+21. ІЦЖВ / ІЦЖП | ΔAIC = 0.08 | p = 0.2046 
+22. ІЦБ × ІЦЖП | ΔAIC = -0.03 | p = 0.2168 
+23. ІЦЖП / ІЦБ | ΔAIC = -0.08 | p = 0.2222 
+24. ІЦБ / ІЦЖП | ΔAIC = -0.17 | p = 0.2335 
+25. Долар / ІЦЖП | ΔAIC = -0.18 | p = 0.2348 
+26. ІФС / ІЦЖП | ΔAIC = -1.24 | p = 0.4424 
+27. ІЦЖП / ІЦЖВ | ΔAIC = -1.28 | p = 0.4541 
+28. ІЦБ / ІЦЖВ | ΔAIC = -1.29 | p = 0.4574 
+29. ІФС × ІЦЖП | ΔAIC = -1.49 | p = 0.5314 
+30. Долар / ІЦЖВ | ΔAIC = -1.70 | p = 0.6298 
+
+> # 1. Євро / Долар | ΔAIC = 11.25 | p = 0.0013 
+> inter_lm <- update(lm1, . ~ . + I(Євро / Долар))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                  Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)   10297.744511 1330.459024  7.739994 2.7281e-07 ***
+Євро             23.658425   56.018396  0.422333 6.7752e-01    
+Долар            74.873233  120.119276  0.623324 5.4048e-01    
+ІФС            -736.881687  184.303479 -3.998197 7.6935e-04 ***
+ІЦБ               0.757003    0.059718 12.676315 1.0207e-10 ***
+ІЦЖВ              1.433243    0.427574  3.352032 3.3484e-03 ** 
+ІЦЖП              1.132810    0.371947  3.045625 6.6533e-03 ** 
+Кімнатність2     15.479132    0.698311 22.166529 4.8715e-15 ***
+Кімнатність3     32.831611    1.970404 16.662372 8.5481e-13 ***
+log(Долар)    -6905.251212  761.162822 -9.071976 2.4668e-08 ***
+log(Євро)      4225.460909 1342.942517  3.146420 5.3149e-03 ** 
+I(I(ІФС^2))   11907.381005 3263.581426  3.648563 1.7087e-03 ** 
+I(Євро/Долар) -4408.434069 2664.521171 -1.654494 1.1445e-01    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.17668   Adj. R2: 0.954645
+
+> inter_lm <- update(inter_lm, . ~ . - Євро)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)    10721.514020 1458.053463  7.35331 5.7254e-07 ***
+Долар            124.759537   18.198764  6.85539 1.5321e-06 ***
+ІФС             -738.965044  182.719284 -4.04426 6.9251e-04 ***
+ІЦБ                0.735047    0.077070  9.53738 1.1225e-08 ***
+ІЦЖВ               1.485662    0.335513  4.42803 2.8872e-04 ***
+ІЦЖП               1.134327    0.400079  2.83526 1.0578e-02 *  
+Кімнатність2      15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3      32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)     -7249.342793 1037.369223 -6.98820 1.1744e-06 ***
+log(Євро)       3962.795028  747.940244  5.29828 4.1014e-05 ***
+I(I(I(ІФС^2))) 11829.860385 3439.049535  3.43986 2.7452e-03 ** 
+I(Євро/Долар)  -3541.451063  659.702159 -5.36826 3.5161e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.1974   Adj. R2: 0.955009
+
+> aic_base - AIC(inter_lm) # 12.47407
+[1] 12.47407
+
+> bic_base - BIC(inter_lm) # 12.47407
+[1] 12.47407
+
+> inter_lm1 <- inter_lm
+
+> # 2. Долар / Євро | ΔAIC = 10.55 | p = 0.0018 
+> inter_lm <- update(lm1, . ~ . + I(Долар / Євро))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                  Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)   11716.997864 1444.574957  8.111035 1.3649e-07 ***
+Євро             17.994760   54.586074  0.329658 7.4526e-01    
+Долар            86.922665  116.987267  0.743010 4.6656e-01    
+ІФС            -728.465115  192.637753 -3.781528 1.2619e-03 ** 
+ІЦБ               0.744220    0.057863 12.861824 7.9607e-11 ***
+ІЦЖВ              1.410992    0.454980  3.101215 5.8792e-03 ** 
+ІЦЖП              1.176144    0.404460  2.907937 9.0199e-03 ** 
+Кімнатність2     15.479132    0.698311 22.166529 4.8715e-15 ***
+Кімнатність3     32.831611    1.970404 16.662372 8.5481e-13 ***
+log(Долар)     2646.644860 6126.878150  0.431973 6.7062e-01    
+log(Євро)     -5473.411593 4718.297584 -1.160040 2.6040e-01    
+I(I(ІФС^2))   11710.224136 3438.236645  3.405881 2.9648e-03 ** 
+I(Долар/Євро) -5519.225504 3473.600459 -1.588906 1.2858e-01    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.19536   Adj. R2: 0.95411
+
+> inter_lm <- update(inter_lm, . ~ . - Євро)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)    11837.305859 1656.533947  7.14583 8.5933e-07 ***
+Долар            124.858414   18.276973  6.83146 1.6076e-06 ***
+ІФС             -731.482654  185.559436 -3.94204 8.7466e-04 ***
+ІЦБ                0.728529    0.077114  9.44737 1.3045e-08 ***
+ІЦЖВ               1.455485    0.346963  4.19493 4.9096e-04 ***
+ІЦЖП               1.171462    0.412686  2.83863 1.0500e-02 *  
+Кімнатність2      15.479132    0.690999 22.40110 4.0165e-15 ***
+Кімнатність3      32.831611    1.949771 16.83870 7.0837e-13 ***
+log(Долар)       876.182267  741.726566  1.18127 2.5207e-01    
+log(Євро)      -4164.407682  805.278914 -5.17139 5.4294e-05 ***
+I(I(I(ІФС^2))) 11678.451812 3510.783016  3.32645 3.5474e-03 ** 
+I(Долар/Євро)  -4657.202797  912.131550 -5.10585 6.2798e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.20805   Adj. R2: 0.954708
+
+> inter_lm <- update(inter_lm, . ~ . - log(Долар))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                      Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)       11954.793728 1926.995579  6.20385 5.8405e-06 ***
+Долар               137.353542   22.053657  6.22815 5.5506e-06 ***
+ІФС                -712.919960  209.517337 -3.40268 2.9863e-03 ** 
+ІЦБ                   0.772932    0.064566 11.97118 2.6982e-10 ***
+ІЦЖВ                  1.553602    0.308433  5.03708 7.3187e-05 ***
+ІЦЖП                  1.083574    0.385439  2.81127 1.1146e-02 *  
+Кімнатність2         15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3         32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Євро)         -3617.293233  573.437303 -6.30809 4.6972e-06 ***
+I(I(I(I(ІФС^2)))) 11513.363991 3895.378506  2.95565 8.1201e-03 ** 
+I(Долар/Євро)     -4029.272113  644.010227 -6.25653 5.2307e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.23623   Adj. R2: 0.95485
+
+> aic_base - AIC(inter_lm) # 13.02558
+[1] 13.02558
+
+> bic_base - BIC(inter_lm) # 15.11992
+[1] 15.11992
+
+> inter_lm2 <- inter_lm
+
+> #### lm2 ####
+> lm2 <- update(lm2, . ~ . - I(I(ІФС^2)) + ІФС^2)
+
+> summary(lm2, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   9721.143794 1742.376626  5.57924 2.2173e-05 ***
+Євро           -56.693812   13.796985 -4.10914 5.9715e-04 ***
+Долар          234.718421   44.409349  5.28534 4.2201e-05 ***
+ІФС           -682.006320  242.902708 -2.80773 1.1233e-02 *  
+ІЦБ              0.808884    0.088219  9.16909 2.0886e-08 ***
+ІЦЖВ             2.422525    0.094460 25.64594 3.3247e-16 ***
+Кімнатність2    15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3    32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Долар)   -6162.090269 1159.910044 -5.31256 3.9744e-05 ***
+log(Євро)     1676.140673  419.293316  3.99754 7.7051e-04 ***
+I(ІФС^2)     11740.176877 4058.290314  2.89289 9.3232e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.62551   Adj. R2: 0.943334
+
+> aic_base <- AIC(lm2)
+
+> bic_base <- BIC(lm2)
+
+> lm2_lmcl <- lm(formula(lm2), data = df_longq)
+
+> interactions_result <- observe_best_interactions(lm2_lmcl, df_long_dateq, top_n = 30)
+
+========== Найкращі 30 взаємодій ==========
+1. Євро / Долар | ΔAIC = 8.07 | p = 0.0047 
+2. Долар / Євро | ΔAIC = 7.07 | p = 0.0073 
+3. Євро × Долар | ΔAIC = 6.75 | p = 0.0085 
+4. Долар × ІЦЖВ | ΔAIC = 5.63 | p = 0.0140 
+5. ІЦЖВ / Долар | ΔAIC = 4.74 | p = 0.0209 
+6. ІЦБ × Кімнатність | ΔAIC = 3.52 | p = 0.0525 
+7. Євро / ІЦЖВ | ΔAIC = 2.11 | p = 0.0712 
+8. ІЦБ / Долар | ΔAIC = 1.43 | p = 0.0995 
+9. Долар × ІЦБ | ΔAIC = 1.18 | p = 0.1128 
+10. ІЦЖВ / Євро | ΔAIC = 0.16 | p = 0.1907 
+11. Євро × ІЦЖВ | ΔAIC = -0.07 | p = 0.2160 
+12. Долар / ІЦЖВ | ΔAIC = -0.10 | p = 0.2196 
+13. ІЦЖВ / ІЦБ | ΔAIC = -0.20 | p = 0.2331 
+14. Євро / ІЦБ | ΔAIC = -1.05 | p = 0.3865 
+15. ІЦБ / ІЦЖВ | ΔAIC = -1.06 | p = 0.3871 
+16. ІЦБ × ІЦЖВ | ΔAIC = -1.34 | p = 0.4713 
+17. ІЦБ / Євро | ΔAIC = -1.36 | p = 0.4781 
+18. Долар × ІФС | ΔAIC = -1.38 | p = 0.4830 
+19. ІФС / Долар | ΔAIC = -1.41 | p = 0.4939 
+20. Євро × ІЦБ | ΔAIC = -1.53 | p = 0.5423 
+21. Долар / ІЦБ | ΔAIC = -1.66 | p = 0.6055 
+22. ІФС × ІЦБ | ΔAIC = -1.80 | p = 0.6941 
+23. ІЦЖВ / ІФС | ΔAIC = -1.91 | p = 0.7932 
+24. ІФС / Євро | ΔAIC = -1.93 | p = 0.8093 
+25. Долар / ІФС | ΔAIC = -1.96 | p = 0.8581 
+26. Євро × ІФС | ΔAIC = -1.96 | p = 0.8646 
+27. ІФС / ІЦБ | ΔAIC = -1.96 | p = 0.8649 
+28. ІФС × ІЦЖВ | ΔAIC = -1.97 | p = 0.8681 
+29. ІФС / ІЦЖВ | ΔAIC = -1.97 | p = 0.8833 
+30. ІЦБ / ІФС | ΔAIC = -1.99 | p = 0.9272 
+
+> # 1. Євро / Долар | ΔAIC = 8.07 | p = 0.0047 
+> inter_lm <- update(lm2, . ~ . + I(Євро / Долар))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                  Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)    9273.469046 1419.974907  6.530727 2.9636e-06 ***
+Євро             23.903428   59.307097  0.403045 6.9141e-01    
+Долар            65.347175  127.468933  0.512652 6.1410e-01    
+ІФС            -672.050270  207.385178 -3.240590 4.3038e-03 ** 
+ІЦБ               0.852615    0.082972 10.275941 3.3887e-09 ***
+ІЦЖВ              2.158296    0.260199  8.294782 9.7511e-08 ***
+Кімнатність2     15.479132    0.690999 22.401102 4.0165e-15 ***
+Кімнатність3     32.831611    1.949771 16.838698 7.0837e-13 ***
+log(Долар)    -6109.321494  953.381620 -6.408055 3.8166e-06 ***
+log(Євро)      3677.018095 1411.633822  2.604796 1.7406e-02 *  
+I(I(ІФС^2))   11728.284942 3394.260107  3.455329 2.6507e-03 ** 
+I(Євро/Долар) -3917.664237 2750.322950 -1.424438 1.7054e-01    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.33358   Adj. R2: 0.951095
+
+> inter_lm <- update(inter_lm, . ~ . - Євро)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)     9700.247249 1408.715927  6.88588 1.4410e-06 ***
+Долар            115.737905   16.550911  6.99284 1.1636e-06 ***
+ІФС             -674.067520  200.457173 -3.36265 3.2691e-03 ** 
+ІЦБ                0.830561    0.080896 10.26704 3.4367e-09 ***
+ІЦЖВ               2.212239    0.137539 16.08443 1.6025e-12 ***
+Кімнатність2      15.479132    0.683911 22.63324 3.3244e-15 ***
+Кімнатність3      32.831611    1.929773 17.01320 5.8915e-13 ***
+log(Долар)     -6455.904446 1063.828351 -6.06856 7.7654e-06 ***
+log(Євро)       3410.886424  816.169303  4.17914 5.0897e-04 ***
+I(I(I(ІФС^2))) 11649.718148 3511.779891  3.31733 3.6212e-03 ** 
+I(Євро/Долар)  -3041.026789  715.373939 -4.25096 4.3207e-04 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.35374   Adj. R2: 0.951511
+
+> aic_base - AIC(inter_lm) # 9.350324
+[1] 9.350324
+
+> bic_base - BIC(inter_lm) # 9.350324
+[1] 9.350324
+
+> inter_lm3 <- inter_lm
+
+> # 2. Долар / Євро | ΔAIC = 7.07 | p = 0.0073 
+> inter_lm <- update(lm2, . ~ . + I(Долар / Євро))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                  Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)   10475.610349 1490.481947  7.028338 1.0843e-06 ***
+Євро             17.034089   57.062554  0.298516 7.6855e-01    
+Долар            79.612570  122.652807  0.649089 5.2405e-01    
+ІФС            -662.891567  218.943433 -3.027684 6.9236e-03 ** 
+ІЦБ               0.843660    0.082218 10.261293 3.4681e-09 ***
+ІЦЖВ              2.169551    0.262546  8.263509 1.0322e-07 ***
+Кімнатність2     15.479132    0.690999 22.401102 4.0165e-15 ***
+Кімнатність3     32.831611    1.949771 16.838698 7.0837e-13 ***
+log(Долар)     2159.560483 6282.722515  0.343730 7.3482e-01    
+log(Євро)     -4761.231869 4804.055865 -0.991086 3.3410e-01    
+I(I(ІФС^2))   11552.506466 3591.640689  3.216498 4.5429e-03 ** 
+I(Долар/Євро) -4763.450272 3517.354059 -1.354271 1.9154e-01    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.36145   Adj. R2: 0.950273
+
+> inter_lm <- update(inter_lm, . ~ . - Євро)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                   Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)    10594.198741 1630.354636  6.498095 3.1693e-06 ***
+Долар            115.558262   16.567504  6.974995 1.2058e-06 ***
+ІФС             -665.995775  206.725234 -3.221647 4.4908e-03 ** 
+ІЦБ                0.828428    0.081825 10.124352 4.3114e-09 ***
+ІЦЖВ               2.208819    0.141791 15.577989 2.8252e-12 ***
+Кімнатність2      15.479132    0.683911 22.633244 3.3244e-15 ***
+Кімнатність3      32.831611    1.929773 17.013197 5.8915e-13 ***
+log(Долар)       485.095690  797.199055  0.608500 5.5006e-01    
+log(Євро)      -3524.531530  871.627355 -4.043622 6.9353e-04 ***
+I(I(I(ІФС^2))) 11523.018411 3612.048178  3.190162 4.8193e-03 ** 
+I(Долар/Євро)  -3950.122798  993.467244 -3.976098 8.0919e-04 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.37226   Adj. R2: 0.950974
+
+> inter_lm <- update(inter_lm, . ~ . - log(Долар))
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                      Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)       10714.922815 1820.120714  5.88693 1.1424e-05 ***
+Долар               123.115521   20.940984  5.87917 1.1615e-05 ***
+ІФС                -658.176871  226.379967 -2.90740 9.0306e-03 ** 
+ІЦБ                   0.849570    0.080258 10.58552 2.0885e-09 ***
+ІЦЖВ                  2.232648    0.121888 18.31722 1.5639e-13 ***
+Кімнатність2         15.479132    0.677038 22.86303 2.7616e-15 ***
+Кімнатність3         32.831611    1.910378 17.18592 4.9172e-13 ***
+log(Євро)         -3238.627501  540.103022 -5.99631 9.0498e-06 ***
+I(I(I(I(ІФС^2)))) 11435.131134 3889.112497  2.94029 8.3998e-03 ** 
+I(Долар/Євро)     -3620.812995  608.536474 -5.95003 9.9855e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.38079   Adj. R2: 0.951711
+
+> aic_base - AIC(inter_lm) # 9.350324
+[1] 10.38629
+
+> bic_base - BIC(inter_lm) # 9.350324
+[1] 12.48064
+
+> inter_lm4 <- inter_lm
+
+> #### lm3 ####
+> summary(lm3, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   7353.595419 2178.861432  3.37497 3.1794e-03 ** 
+Євро           -55.895163   15.189589 -3.67983 1.5912e-03 ** 
+Долар          205.618961   42.493137  4.83887 1.1405e-04 ***
+ІЦБ              0.852038    0.109406  7.78785 2.4924e-07 ***
+ЧисНасел         0.000240    0.000088  2.73374 1.3192e-02 *  
+ІЦЖВ             1.904854    0.245057  7.77312 2.5626e-07 ***
+Кімнатність2    15.479132    0.677038 22.86303 2.7616e-15 ***
+Кімнатність3    32.831611    1.910378 17.18592 4.9172e-13 ***
+log(Долар)   -5391.447576 1108.347473 -4.86440 1.0770e-04 ***
+log(Євро)     1653.981760  471.282508  3.50953 2.3441e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.82333   Adj. R2: 0.938242
+
+> aic_base <- AIC(lm3)
+
+> bic_base <- BIC(lm3)
+
+> lm3_lmcl <- lm(formula(lm3), data = df_longq)
+
+> interactions_result <- observe_best_interactions(lm3_lmcl, df_long_dateq, top_n = 30)
+
+========== Найкращі 30 взаємодій ==========
+1. Долар × ІЦЖВ | ΔAIC = 11.01 | p = 0.0012 
+2. ІЦЖВ / Долар | ΔAIC = 10.00 | p = 0.0018 
+3. Долар / ІЦЖВ | ΔAIC = 8.31 | p = 0.0039 
+4. ІЦБ / Долар | ΔAIC = 5.55 | p = 0.0135 
+5. Євро / ІЦЖВ | ΔAIC = 5.53 | p = 0.0136 
+6. Долар × ІЦБ | ΔAIC = 5.28 | p = 0.0153 
+7. Євро / Долар | ΔAIC = 4.81 | p = 0.0189 
+8. Долар / Євро | ΔAIC = 4.25 | p = 0.0246 
+9. Євро × Долар | ΔAIC = 4.15 | p = 0.0257 
+10. ЧисНасел × Кімнатність | ΔAIC = 2.74 | p = 0.0675 
+11. ІЦБ × Кімнатність | ΔAIC = 2.72 | p = 0.0680 
+12. ІЦЖВ / Євро | ΔAIC = 1.72 | p = 0.0828 
+13. Євро × ІЦЖВ | ΔAIC = 1.72 | p = 0.0829 
+14. Долар / ЧисНасел | ΔAIC = 1.29 | p = 0.1030 
+15. Долар × ЧисНасел | ΔAIC = 1.07 | p = 0.1151 
+16. Євро / ЧисНасел | ΔAIC = 0.80 | p = 0.1325 
+17. Євро × ЧисНасел | ΔAIC = 0.67 | p = 0.1415 
+18. ІЦБ / Євро | ΔAIC = 0.55 | p = 0.1511 
+19. Євро × ІЦБ | ΔAIC = 0.47 | p = 0.1574 
+20. ЧисНасел / Євро | ΔAIC = 0.44 | p = 0.1601 
+21. Долар / ІЦБ | ΔAIC = -0.14 | p = 0.2200 
+22. ЧисНасел / Долар | ΔAIC = -0.49 | p = 0.2691 
+23. ІЦБ / ЧисНасел | ΔAIC = -0.64 | p = 0.2937 
+24. ІЦБ × ЧисНасел | ΔAIC = -0.67 | p = 0.3001 
+25. Євро / ІЦБ | ΔAIC = -0.85 | p = 0.3356 
+26. ІЦЖВ / ЧисНасел | ΔAIC = -1.53 | p = 0.5356 
+27. ЧисНасел / ІЦЖВ | ΔAIC = -1.61 | p = 0.5738 
+28. ЧисНасел × ІЦЖВ | ΔAIC = -1.69 | p = 0.6143 
+29. ІЦБ × ІЦЖВ | ΔAIC = -1.73 | p = 0.6381 
+30. ЧисНасел / ІЦБ | ΔAIC = -1.93 | p = 0.8142 
+
+> # 1. Долар × ІЦЖВ | ΔAIC = 11.01 | p = 0.0012 
+> inter_lm <- update(lm3, . ~ . + Долар:ІЦЖВ)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error   t value   Pr(>|t|)    
+(Intercept)   2061.680796 2657.717063  0.775734 4.4746e-01    
+Євро           -67.433169   17.785496 -3.791470 1.2336e-03 ** 
+Долар          275.091739   64.153876  4.287999 3.9709e-04 ***
+ІЦБ              0.539562    0.101420  5.320075 3.9091e-05 ***
+ЧисНасел         0.000194    0.000093  2.100605 4.9255e-02 *  
+ІЦЖВ            26.738169    7.512734  3.559046 2.0947e-03 ** 
+Кімнатність2    15.479132    0.683911 22.633244 3.3244e-15 ***
+Кімнатність3    32.831611    1.929773 17.013197 5.8915e-13 ***
+log(Долар)   -4611.517278 1491.677137 -3.091498 6.0079e-03 ** 
+log(Євро)     2061.502776  545.203149  3.781164 1.2629e-03 ** 
+Долар:ІЦЖВ      -0.928052    0.277833 -3.340321 3.4381e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.43063   Adj. R2: 0.949262
+
+> aic_base - AIC(inter_lm) # 11.00509
+[1] 11.00509
+
+> bic_base - BIC(inter_lm) # 8.910743
+[1] 8.910743
+
+> inter_lm5 <- inter_lm
+
+> # Можна поки що залишити, але є нюанс. Перевага цієї моделі була в тому, що вона
+> # є дещо простішою за інші. Кандидат на вилучення.
+> 
+> 
+> 
+> ### .... [TRUNCATED] 
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)  11165.533051 2190.410054  5.09746 6.3979e-05 ***
+Євро           -64.363158   19.797749 -3.25103 4.2039e-03 ** 
+Долар          268.569437   53.314178  5.03749 7.3121e-05 ***
+ІЦБ              0.694759    0.159083  4.36727 3.3150e-04 ***
+ІЦЖВ             2.340400    0.144894 16.15249 1.4866e-12 ***
+Кімнатність2    15.479132    0.670367 23.09053 2.3023e-15 ***
+Кімнатність3    32.831611    1.891556 17.35693 4.1179e-13 ***
+log(Долар)   -7050.720465 1417.390239 -4.97444 8.4172e-05 ***
+log(Євро)     1915.592259  614.257477  3.11855 5.6562e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 4.07785   Adj. R2: 0.931124
+
+> aic_base <- AIC(lm4)
+
+> bic_base <- BIC(lm4)
+
+> lm4_lmcl <- lm(formula(lm4), data = df_longq)
+
+> interactions_result <- observe_best_interactions(lm4_lmcl, df_long_dateq, top_n = 30)
+
+========== Найкращі 30 взаємодій ==========
+1. Долар × ІЦЖВ | ΔAIC = 12.54 | p = 0.0005 
+2. ІЦЖВ / Долар | ΔAIC = 11.15 | p = 0.0010 
+3. Євро / ІЦЖВ | ΔAIC = 8.53 | p = 0.0032 
+4. ІЦБ / Долар | ΔAIC = 6.78 | p = 0.0071 
+5. ІЦЖВ / Євро | ΔAIC = 6.63 | p = 0.0076 
+6. Євро × ІЦЖВ | ΔAIC = 6.57 | p = 0.0078 
+7. Долар × ІЦБ | ΔAIC = 6.49 | p = 0.0081 
+8. ІЦБ / Євро | ΔAIC = 6.21 | p = 0.0093 
+9. Євро × ІЦБ | ΔAIC = 5.82 | p = 0.0111 
+10. Євро / Долар | ΔAIC = 5.48 | p = 0.0130 
+11. Долар / Євро | ΔAIC = 5.19 | p = 0.0149 
+12. Євро × Долар | ΔAIC = 4.70 | p = 0.0187 
+13. ІЦЖВ / ІЦБ | ΔAIC = 3.29 | p = 0.0368 
+14. ІЦБ × Кімнатність | ΔAIC = 1.87 | p = 0.0911 
+15. Долар / ІЦЖВ | ΔAIC = 0.69 | p = 0.1360 
+16. Долар / ІЦБ | ΔAIC = -0.69 | p = 0.2988 
+17. ІЦБ × ІЦЖВ | ΔAIC = -0.80 | p = 0.3195 
+18. ІЦБ / ІЦЖВ | ΔAIC = -1.74 | p = 0.6403 
+19. Євро / ІЦБ | ΔAIC = -1.83 | p = 0.7105 
+20. ІЦЖВ × Кімнатність | ΔAIC = -3.74 | p = 0.8984 
+21. Євро × Кімнатність | ΔAIC = -3.95 | p = 0.9802 
+22. Долар × Кімнатність | ΔAIC = -3.99 | p = 0.9968 
+
+> # 1. Долар × ІЦЖВ | ΔAIC = 12.54 | p = 0.0005 
+> inter_lm <- update(lm4, . ~ . + Долар:ІЦЖВ)
+
+> summary(inter_lm, vcov = "DK")
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   4502.034409 2061.897836  2.18344 4.1750e-02 *  
+Євро           -75.336098   15.309936 -4.92073 9.4919e-05 ***
+Долар          332.104869   52.643902  6.30852 4.6930e-06 ***
+ІЦБ              0.382319    0.077171  4.95420 8.8068e-05 ***
+ІЦЖВ            29.727288    6.762504  4.39590 3.1060e-04 ***
+Кімнатність2    15.479132    0.677038 22.86303 2.7616e-15 ***
+Кімнатність3    32.831611    1.910378 17.18592 4.9172e-13 ***
+log(Долар)   -5836.089392 1169.203023 -4.99151 8.1021e-05 ***
+log(Євро)     2311.096850  473.926379  4.87649 1.0482e-04 ***
+Долар:ІЦЖВ      -1.026931    0.253847 -4.04547 6.9061e-04 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.61256   Adj. R2: 0.944864
+
+> aic_base - AIC(inter_lm) # 12.53815
+[1] 12.53815
+
+> bic_base - BIC(inter_lm) # 10.4438
+[1] 10.4438
+
+> inter_lm6 <- inter_lm
+
+> # Ця модель не містить ЧисНасел, тому якщо ЧисНасел не робить вамого внеску у 
+> # виконання регресійних припущень, вона є кращою за попередню.
+> 
+> .... [TRUNCATED] 
+
+> final_modelsq <- append(final_modelsq, inter_modelsq)
+
+> # ======== 8) ВАЛІДАЦІЯ МОДЕЛІ ========
+> final_models_lmq <- lapply(final_modelsq, function(m) lm(clean_formula(m), data = df_longq))
+
+> suppressWarnings(
++   models_validation(final_models_lmq, data = df_longq, kfold_number = 5,
++                     horizon = 1, init_window = 12)
++  .... [TRUNCATED] 
+
+sqrt(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ІЦЖВ + 
+    ІЦЖП + Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2)
+Adj. R²: 0.9446   Pred. R²: 0.9307   5-fold R²: 0.9405
+Train RMSE: 3.5477   5-fold RMSE: 4.4172   FC RMSE: 8.6687
+
+sqrt(Ціна) ~ Євро + Долар + ІФС + ІЦБ + ІЦЖВ + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2)
+Adj. R²: 0.9433   Pred. R²: 0.9316   5-fold R²: 0.9536
+Train RMSE: 3.6255   5-fold RMSE: 4.2628   FC RMSE: 6.1284
+
+sqrt(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + 
+    ІЦЖВ + Кімнатність + log(Долар) + log(Євро)
+Adj. R²: 0.9382   Pred. R²: 0.9266   5-fold R²: 0.9376
+Train RMSE: 3.8233   5-fold RMSE: 4.5735   FC RMSE: 7.0031
+
+sqrt(Ціна) ~ Євро + Долар + ІЦБ + ІЦЖВ + 
+    Кімнатність + log(Долар) + log(Євро)
+Adj. R²: 0.9311   Pred. R²: 0.9189   5-fold R²: 0.9366
+Train RMSE: 4.0778   5-fold RMSE: 4.3498   FC RMSE: 6.3015
+
+sqrt(Ціна) ~ Долар + ІФС + ІЦБ + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    I(ІФС^2) + I(Євро/Долар)
+Adj. R²: 0.9550   Pred. R²: 0.9418   5-fold R²: 0.9569
+Train RMSE: 3.1974   5-fold RMSE: 3.8458   FC RMSE: 8.0793
+
+sqrt(Ціна) ~ Долар + ІФС + ІЦБ + ІЦЖВ + ІЦЖП + 
+    Кімнатність + log(Євро) + I(ІФС^2) + I(Долар/Євро)
+Adj. R²: 0.9548   Pred. R²: 0.9420   5-fold R²: 0.9550
+Train RMSE: 3.2362   5-fold RMSE: 3.9597   FC RMSE: 5.6991
+
+sqrt(Ціна) ~ Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність + 
+    log(Долар) + log(Євро) + I(ІФС^2) + I(Євро/Долар)
+Adj. R²: 0.9515   Pred. R²: 0.9402   5-fold R²: 0.9419
+Train RMSE: 3.3537   5-fold RMSE: 4.3454   FC RMSE: 6.4548
+
+sqrt(Ціна) ~ Долар + ІФС + ІЦБ + ІЦЖВ + Кімнатність + 
+    log(Євро) + I(ІФС^2) + I(Долар/Євро)
+Adj. R²: 0.9517   Pred. R²: 0.9406   5-fold R²: 0.9512
+Train RMSE: 3.3808   5-fold RMSE: 3.8042   FC RMSE: 4.7451
+
+sqrt(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + 
+    ІЦЖВ + Кімнатність + log(Долар) + log(Євро) + 
+    Долар:ІЦЖВ
+Adj. R²: 0.9493   Pred. R²: 0.9377   5-fold R²: 0.9570
+Train RMSE: 3.4306   5-fold RMSE: 4.1207   FC RMSE: 7.9942
+
+sqrt(Ціна) ~ Євро + Долар + ІЦБ + ІЦЖВ + 
+    Кімнатність + log(Долар) + log(Євро) + 
+    Долар:ІЦЖВ
+Adj. R²: 0.9449   Pred. R²: 0.9341   5-fold R²: 0.9351
+Train RMSE: 3.6126   5-fold RMSE: 4.3098   FC RMSE: 6.1391
+
+> # ======== 9) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+> # Вибір найкращої моделі буде оснований на тому, яка модель має найменше "порушень".
+> # Найбільшою  .... [TRUNCATED] 
+[1] 10
+
+> residuals_plot(final_models_lmq[[1]]) # Задовільно.
+
+> residuals_regressors_plot(final_models_lmq[[1]], c(3, 4)) # Значна недооцінка всіх К.
+
+> residuals_plot(final_models_lmq[[2]]) 
+
+> residuals_regressors_plot(final_models_lmq[[2]], c(3, 4)) # Приблизно те саме.
+
+> residuals_plot(final_models_lmq[[3]]) # Краще.
+
+> residuals_regressors_plot(final_models_lmq[[3]], c(3, 4)) # Незначна? недооцінка для К2.
+
+> # +
+> 
+> residuals_plot(final_models_lmq[[4]]) # Майже те саме, що і для 3.
+
+> residuals_regressors_plot(final_models_lmq[[4]], c(3, 4)) # Незначна недооцінка всіх К.
+
+> residuals_plot(final_models_lmq[[5]]) 
+
+> residuals_regressors_plot(final_models_lmq[[5]], c(3, 4)) # Величезна недооцінка К3.
+
+> residuals_plot(final_models_lmq[[6]]) 
+
+> residuals_regressors_plot(final_models_lmq[[6]], c(3, 4)) # Величезна недооцінка K3.
+
+> residuals_plot(final_models_lmq[[7]])
+
+> residuals_regressors_plot(final_models_lmq[[7]], c(3, 3)) # Величезна недооцінка K3.
+
+> residuals_plot(final_models_lmq[[8]]) 
+
+> residuals_regressors_plot(final_models_lmq[[8]], c(3, 3)) # Значна недооцінка К2, K3.
+
+> residuals_plot(final_models_lmq[[9]]) 
+
+> residuals_regressors_plot(final_models_lmq[[9]], c(3, 3)) # Значна K3.
+
+> residuals_plot(final_models_lmq[[10]])
+
+> residuals_regressors_plot(final_models_lmq[[10]], c(3, 3)) # Значна недооцінка К1; незначна - К3.
+
+> best_modelsq <- list(final_models_lmq[[3]]) # Найкраща модель - одна.
+
+> lm_to_feols_summary(best_modelsq[[1]], df_long_dateq)
+OLS estimation, Dep. Var.: sqrt(Ціна)
+Observations: 60
+Standard-errors: Driscoll-Kraay (L=2) 
+                 Estimate  Std. Error  t value   Pr(>|t|)    
+(Intercept)   7353.595419 2178.861432  3.37497 3.1794e-03 ** 
+Євро           -55.895163   15.189589 -3.67983 1.5912e-03 ** 
+Долар          205.618961   42.493137  4.83887 1.1405e-04 ***
+ІЦБ              0.852038    0.109406  7.78785 2.4924e-07 ***
+ЧисНасел         0.000240    0.000088  2.73374 1.3192e-02 *  
+ІЦЖВ             1.904854    0.245057  7.77312 2.5626e-07 ***
+Кімнатність2    15.479132    0.677038 22.86303 2.7616e-15 ***
+Кімнатність3    32.831611    1.910378 17.18592 4.9172e-13 ***
+log(Долар)   -5391.447576 1108.347473 -4.86440 1.0770e-04 ***
+log(Євро)     1653.981760  471.282508  3.50953 2.3441e-03 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 3.82333   Adj. R2: 0.938242
+
+> models_validation(best_modelsq, df_longq, horizon = 1, kfold_number = 5,
++                   init_window = 12)
+
+sqrt(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + 
+    ІЦЖВ + Кімнатність + log(Долар) + log(Євро)
+Adj. R²: 0.9382   Pred. R²: 0.9266   5-fold R²: 0.9359
+Train RMSE: 3.8233   5-fold RMSE: 4.6019   FC RMSE: 7.0031

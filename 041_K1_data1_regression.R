@@ -5,17 +5,19 @@ library(ggplot2)
 library(sandwich)
 library(leaps)
 library(nlme)
+library(olsrr)
+library(caret)
 
 # Схема побудови моделі.
 # 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ.
 # 2) ПОВНА МОДЕЛЬ.
 # 3) МУЛЬТИКОЛІНЕАРНІСТЬ-2. VIF, ЧИСЛО ОБУМОВЛЕНОСТІ.
-# 4) АНАЛІЗ ЗАЛИШКІВ І РОБОТА З ВИКИДАМИ.
-# 5) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ. ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ.
-# 6) АВТОКОРЕЛЯЦІЯ.
-# 6) Застосувати всі можливі регресії, якщо це можливо.
-# 7) Відібрати найкращі моделі за декількома критеріями.
-# 8) Додати interactions.
+# 4) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ. ЛІНІЙНІСТЬ, ГОМОСКЕДАСТИЧНІСТЬ, НОРМАЛЬНІСТЬ.
+# 5) АВТОКОРЕЛЯЦІЯ.
+# 6) ВСІ МОЖЛИВІ РЕГРЕСІЇ. ВІДБІР.
+# 7) ЕФЕКТИ ВЗАЄМОДІЇ.
+# 8) ВАЛІДАЦІЯ.
+# 9) ВІДБІР НАЙКРАЩИХ.
 
 # Побудуємо модель на основі цін для однокімнатних квартир.
 
@@ -84,24 +86,48 @@ residuals_plot <- function(model, type = "response"){
   par(mar = c(5, 4, 4, 2))
 }
 
-
-residuals_regressors_plot <- function(model, nr_nc, type = "response"){
+ 
+residuals_regressors_plot <- function(model, nr_nc, type = "response") {
   predictors <- attr(terms(model), "term.labels")
-  pred_num <- length(predictors)
+  mm <- model.matrix(model)
+  mm_cols <- colnames(mm)
+  
   par(mfrow = nr_nc)
   
-  for(pred in predictors){
-    residualPlot(model, variable = pred, 
-                 type = type,
-                 col = "steelblue", 
-                 pch = 19,
-                 cex = 1, 
-                 id = list(n = 3, col = "red", cex = 1),
-                 col.quad = "white",
-                 grid = TRUE,
-                 main = "",
-                 xlab = pred,
-                 ylab = "")
+  for (pred in predictors) {
+    if (grepl(":", pred)) {
+      parts <- strsplit(pred, ":")[[1]]
+      matching_idx <- which(grepl(parts[1], mm_cols) & grepl(parts[2], mm_cols))[1]
+      
+      if (is.na(matching_idx)) {
+        cat("Пропущено:", pred, "— не знайдено\n")
+        next
+      }
+      x_vals <- mm[, matching_idx]
+      res_vals <- switch(type,
+                         "rstudent"  = rstudent(model),
+                         "rstandard" = rstandard(model),
+                         residuals(model)
+      )
+      plot(x_vals, res_vals,
+           col = "steelblue", pch = 19, cex = 1,
+           xlab = pred, ylab = "")
+      grid(col = "gray80", lty = "solid")
+      abline(h = 0, col = "gray50", lty = 2)
+      
+    } else {
+      residualPlot(model, variable = pred, 
+                   type = type,
+                   col = "steelblue", 
+                   pch = 19,
+                   cex = 1, 
+                   id = list(n = 3, col = "red", cex = 1),
+                   col.quad = "white",
+                   grid = TRUE,
+                   main = "",
+                   xlab = pred,
+                   ylab = "")
+    }
   }
   par(mfrow = c(1, 1))
 }
@@ -213,13 +239,7 @@ plot_model_df <- function(full_period, model_df, points = NULL){
 }
 
 
-av_plots <- function(model, exclude = NULL){
-  predictors <- attr(terms(model), "term.labels")
-  if(!is.null(exclude)){
-    predictors <- predictors[!grepl(exclude, predictors)]
-  }
-  # Поки що забудемо про виведення графіків для індикаторних змінних.
-  # Повернемося сюди пізніше.
+av_plots <- function(model){
   avPlots(model, 
           col = "steelblue", 
           pch = 19,
@@ -475,57 +495,6 @@ observe_best_interactions <- function(model, data, top_n = 5){
 }
 
 
-factor_level_interactions <- function(model, data, factor_var = "Кімнатність", top_n = 10) {
-  
-  # Числові предиктори (без функцій)
-  predictors <- attr(terms(model), "term.labels")
-  predictors <- predictors[!grepl("\\^|log\\(|sqrt\\(|I\\(", predictors)]
-  factor_vars <- names(data)[sapply(data, is.factor)]
-  numeric_preds <- setdiff(predictors, factor_vars)
-  
-  results <- data.frame(
-    interaction = character(),
-    AIC = numeric(),
-    delta_AIC = numeric(),
-    stringsAsFactors = FALSE
-  )
-  base_AIC <- AIC(model)
-  
-  for (pred in numeric_preds) {
-    formula_int <- as.formula(paste(". ~ . +", pred, "*", factor_var))
-    model_int <- try(update(model, formula_int), silent = TRUE)
-    
-    if (!inherits(model_int, "try-error")) {
-      aic_int <- AIC(model_int)
-      results <- rbind(results, data.frame(
-        interaction = paste(pred, "×", factor_var),
-        AIC = aic_int,
-        delta_AIC = base_AIC - aic_int
-      ))
-    }
-  }
-  
-  results <- results[order(-results$delta_AIC), ]
-  
-  cat("\n========== Взаємодії з", factor_var, "==========\n")
-  for (i in 1:min(top_n, nrow(results))) {
-    r <- results[i, ]
-    cat(sprintf("%d. %s | ΔAIC = %.2f\n", i, r$interaction, r$delta_AIC))
-  }
-  
-  # Показати деталі для найкращої
-  if (nrow(results) > 0) {
-    best_pred <- strsplit(results$interaction[1], " × ")[[1]][1]
-    formula_best <- as.formula(paste(". ~ . +", best_pred, "*", factor_var))
-    model_best <- update(model, formula_best)
-    cat("\n--- Деталі для найкращої взаємодії ---\n")
-    print(summary(model_best))
-  }
-  
-  invisible(results)
-}
-
-
 gls_dwtest <- function(gls_model){
   e <- residuals(gls_model, type = "normalized")
   # type = "normalized" - витягти залишки після домноження рівняння на К^-1
@@ -609,6 +578,52 @@ assumptions_check <- function(model){
 }
 
 
+model_equation <- function(model, digits = 4) {
+  coefs <- coef(model)
+  response <- colnames(model$model)[[1]]
+  formula_str <- paste0(response, " = ", sprintf("%.4f", coefs[1]))
+  
+  for (i in 2:length(coefs)) {
+    sign <- ifelse(coefs[i] >= 0, " + ", " - ")
+    formula_str <- paste0(formula_str, sign, sprintf("%.4f", abs(coefs[i])), "·", names(coefs)[i])
+  }
+  cat(formula_str, "\n")
+}
+
+models_validation <- function(model_list, data, kfold_number = 5, 
+                              init_window = 50, horizon = 1, model_class = "lm") {
+  
+  train_control <- trainControl(method = "cv", number = kfold_number)
+  train_control_fc <- trainControl(method = "timeslice",
+                                initialWindow = init_window,
+                                horizon = horizon,
+                                fixedWindow = FALSE)
+  for (model in model_list) {
+    model_cv <- train(formula(model), 
+                      data = data, 
+                      method = model_class, 
+                      trControl = train_control)
+    model_fc <- train(formula(model), 
+                      data = data, 
+                      method = model_class, 
+                      trControl = train_control_fc)
+    
+    rmse_train <- sqrt(mean(residuals(model)^2))
+    
+    cat("\n") 
+    print(formula(model), showEnv = FALSE)
+    cat(sprintf("Adj. R²: %.4f   Pred. R²: %.4f   %d-fold R²: %.4f\n", 
+                summary(model)$adj.r.squared, 
+                ols_pred_rsq(model),
+                kfold_number, model_cv$results$Rsquared))
+    cat(sprintf("Train RMSE: %.4f   %d-fold RMSE: %.4f   FC RMSE: %.4f\n", 
+                rmse_train,
+                kfold_number, model_cv$results$RMSE,
+                model_fc$results$RMSE))
+  }
+}
+
+
 # ----- 75 СПОСТЕРЕЖЕНЬ -----
 # ==== 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ ====
 cor_matrix_75 <- model_cor_matrix(model_df_75[, -1], "")
@@ -624,7 +639,6 @@ head(model1_75_df, 3)
 
 
 # ==== 2) ПОВНА МОДЕЛЬ ====
-
 model_full1_75 <- lm(Ціна ~ ., data = model1_75_df)
 summary(model_full1_75)
 
@@ -695,13 +709,14 @@ plot_model_df(data1, model1_75_df_date, influential_points)
 # далі від центроїда, залишки можуть бути заниженими, оскільки для них h_ii -> 1.
 
 
+
 # ==== 5) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ ====
 # Дослідимо лінійність зв'язку та постійність дисперсії.
 
 
 # ЛІНІЙНІСТЬ
 plot(model_full1_75, which = 1)
-# Якщо зв'язок між y та x лінійний LOESS пряма має бути горизонтальною.
+# Якщо зв'язок між y та x лінійний LOESS крива має бути горизонтальною.
 # Лінія не зовсім пряма. Не очевидно.
 
 residuals_regressors_plot(model_full1_75, c(2, 4), type = "rstudent")
@@ -751,7 +766,6 @@ crPlots(model_full1_75)
 # Спробуємо застосувати "Стандартні" функціональні перетворерення до регресорів 
 # і відгука.
 observe_transforms_x(model_full1_75, regressors = names(coef(model_full1_75))[-1])
-# Суттєвої різниці немає.
 
 observe_transforms_y(model_full1_75)
 # Суттєвої різниці немає.
@@ -993,14 +1007,12 @@ acf(residuals(model_full_gls, type = "normalized"), main = "ACF залишків
 
 
 
-
 # ==== 7) ВІДБІР ЗМІННИХ ====
 # GLS не працює із R2 і Cp, тому основну увагу приділяємо BIC.
 
 # Усі можливі регресії
 all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2), data = model1_75_df, nbest = 3)
 
-plot_subsets(all_models)
 best_models <- best_models_summary(all_models, 10)
 
 
@@ -1008,7 +1020,7 @@ best_models <- best_models_summary(all_models, 10)
 lm_BIC3 <- lm(log(Ціна) ~ ЧисНасел + РівДолар, data = model1_75_df)
 summary(lm_BIC3) # Adjusted R-squared:  0.8583 - не значно гірше за найкращі моделі по R2.
 coeftest(lm_BIC3, vcov = vcovHAC(lm_BIC3))
-final_models <- list("2vars_BIC3" = lm_BIC3)
+final_models1 <- list("2vars_BIC3" = lm_BIC3)
 
 
 # 1. Євро + Долар + ІГР + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8901 (p = 8)
@@ -1016,7 +1028,7 @@ lm_Rsq1 <- lm(log(Ціна) ~ Євро + Долар + ІГР + ІЦБ + ЧисН
 summary(lm_Rsq1)
 anova(lm_BIC3, lm_Rsq1) # додаткові змінні дійсно покращують модель.  Модель із p = 8 краща.
 coeftest(lm_Rsq1, vcov = vcovHAC(lm_Rsq1)) # Долар на межі.
-final_models[["7vars_Rsq1"]] <- lm_Rsq1
+final_models1[["7vars_Rsq1"]] <- lm_Rsq1
 
 # 3. Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2)  | Adj R² = 0.8852 (p = 7)
 lm_Rsq3 <- lm(log(Ціна) ~ Євро + Долар + ІЦБ + ЧисНасел + РівДолар + I(Долар^2), data = model1_75_df)
@@ -1049,7 +1061,7 @@ analyze_selected_models(all_models, model1_75_df, indices = best_bic, rho = rho)
 
 
 # ======== ФІНАЛЬНА МОДЕЛЬ ========
-names(final_models)
+names(final_models1)
 
 summary(lm_Rsq1)
 summary(lm_BIC3)
@@ -1174,7 +1186,7 @@ coeftest(lm_BIC3, vcov = vcovHAC(lm_BIC3))
 
 
 # ======== 8) ЕФЕКТИ ВЗАЄМОДІЇ ========
-# Працюємо із наступною моделлю:
+#### lm1 ####
 summary(lm_Rsq1)
 aic_base <- AIC(lm_Rsq1)
 bic_base <- BIC(lm_Rsq1)
@@ -1227,7 +1239,59 @@ assumptions_check(inter_lm3) # DW = 0.97155
 assumptions_check(inter_lm4) # DW = 1.0272
 # Для всіх моделей виконуються всі припущення, крім некорельованості залишків.
 
-final_models[["Долар × ІЦБ"]] <- inter_lm1
-final_models[["Долар / Євро"]] <- inter_lm2
-final_models[["ІЦБ / Долар"]] <- inter_lm3
-final_models[["РівДолар / Євро"]] <- inter_lm4
+final_models1[["Долар × ІЦБ"]] <- inter_lm1
+final_models1[["Долар / Євро"]] <- inter_lm2
+final_models1[["ІЦБ / Долар"]] <- inter_lm3
+final_models1[["РівДолар / Євро"]] <- inter_lm4
+
+
+#### lm2 ####
+summary(lm_BIC3)
+aic_base <- AIC(lm_BIC3)
+bic_base <- BIC(lm_BIC3)
+
+interactions_result <- observe_best_interactions(lm_Rsq1, model1_75_df, top_n = 10)
+
+# 1. Долар × ІЦБ | ΔAIC = 5.62 | p = 0.0101 
+inter_lm <- update(lm_BIC3, . ~ . + Долар:ІЦБ)
+summary(inter_lm)
+coeftest(inter_lm, vcov = vcovHAC(inter_lm)) # Долар:ІЦБ не значуща.
+# Не будемо ускладнювати модель.
+
+
+
+# ======== 9) ВАЛІДАЦІЯ МОДЕЛІ ========
+suppressWarnings(
+  models_validation(final_models1, data = model1_75_df, kfold_number = 5,
+                                   horizon = 1, init_window = 48)
+)
+
+
+
+# ======== 10) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+length(final_models1)
+
+coeftest(final_models1[[1]], vcov = vcovHAC(final_models1[[1]])) # Проста модель, можна залишити.
+coeftest(final_models1[[2]], vcov = vcovHAC(final_models1[[2]])) # Долар на межі
+coeftest(final_models1[[3]], vcov = vcovHAC(final_models1[[3]])) # -
+coeftest(final_models1[[4]], vcov = vcovHAC(final_models1[[4]])) # +
+coeftest(final_models1[[5]], vcov = vcovHAC(final_models1[[5]])) # - Частка індекса на змінну?..
+coeftest(final_models1[[6]], vcov = vcovHAC(final_models1[[6]])) # - Те саме (ще й РівДолар на межі)
+
+
+residuals_plot(final_models1[[1]]) 
+residuals_regressors_plot(final_models1[[1]], c(3, 3)) 
+
+residuals_plot(final_models1[[2]]) 
+residuals_regressors_plot(final_models1[[2]], c(3, 3))
+
+residuals_plot(final_models1[[4]])
+residuals_regressors_plot(final_models1[[4]], c(3, 3)) 
+
+
+best_models1 <- final_models1[c(1, 2, 4)]
+
+models_validation(best_models1[-length(best_models1)], model1_75_df, horizon = 1, kfold_number = 5,
+                  init_window = 48)
+
+

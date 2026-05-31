@@ -83,10 +83,8 @@ get_split_periods <- function(all_tables, min_obs = 10, date = "2022-02-01"){ # 
 ### Дані за весь період із 2015 до 2025.
 cat("Всього факторів:", length(all_tables))
 
-# is_markdown - змінна, оголошена в main
-if(is_markdown){
-  combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
-}
+combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
+
 
 
 # =======ПОТЕНЦІЙНІ ПРОБЛЕМИ=======

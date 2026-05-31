@@ -397,4 +397,28 @@ assumptions_check(inter_lm2) # DW = 1.1042
 final_models3[["6Євро / РівДолар"]] <- inter_lm1
 final_models3[["6РівДолар / Євро"]] <- inter_lm2
 
-names(final_models3)
+
+suppressWarnings(
+  models_validation(final_models3, data = model3_75_df, kfold_number = 5,
+                    horizon = 1, init_window = 48)
+)
+
+
+# ======== 11) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+length(final_models3)
+
+coeftest(final_models3[[1]], vcov = vcovHAC(final_models3[[1]])) # - Сповільнення Долара.
+coeftest(final_models3[[2]], vcov = vcovHAC(final_models3[[2]])) # - Сповільнення Долара.
+coeftest(final_models3[[3]], vcov = vcovHAC(final_models3[[3]])) # - Сповільнення Долара.
+coeftest(final_models3[[4]], vcov = vcovHAC(final_models3[[4]])) # +
+coeftest(final_models3[[5]], vcov = vcovHAC(final_models3[[5]])) # - Сповільнення Євро.
+coeftest(final_models3[[6]], vcov = vcovHAC(final_models3[[6]])) # - Сповільнення Долара.
+coeftest(final_models3[[7]], vcov = vcovHAC(final_models3[[7]])) # - Сповільнення Долара.
+
+residuals_plot(final_models3[[4]]) 
+residuals_regressors_plot(final_models3[[4]], c(3, 3)) 
+
+best_models3 <- final_models3[4]
+
+models_validation(best_models3, model3_75_df, horizon = 1, kfold_number = 5,
+                  init_window = 48)

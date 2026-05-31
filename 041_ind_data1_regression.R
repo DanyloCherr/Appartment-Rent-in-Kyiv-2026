@@ -2,6 +2,12 @@ library(tidyr)
 library(plm)
 library(fixest)
 
+lm_to_feols_summary <- function(model, data){
+  modelf <- feols(formula(model), data = data, panel.id = ~ Кімнатність + Дата)
+  summary(modelf, vcov = "DK")
+}
+
+
 reset_panel <- function(model, data, power = 2:3) {
   y_name <- names(data)[1]
   y_hat <- fitted(model)
@@ -46,12 +52,11 @@ robustSE_diff <- function(model, vcov){
     sm_coefs_robust <- coeftest(model, vcov = vcov)
     robust_SE <- sm_coefs_robust[, 2]
   }else{
-    len <- length(summary(model_feols)$se)
-    print(len)
-    sm_coefs <- (summary(model_feols)$se)[c(1:len)]
+    len <- length(summary(model)$se)
+    sm_coefs <- (summary(model)$se)[c(1:len)]
     ordinary_SE <- sm_coefs
     
-    sm_coefs_robust <- (summary(model_feols, vcov = vcov)$se)[c(1:length(sm_coefs))]
+    sm_coefs_robust <- (summary(model, vcov = vcov)$se)[c(1:length(sm_coefs))]
     robust_SE <- sm_coefs_robust
   }
   cat("SE ordinary", "\n")
@@ -78,6 +83,40 @@ acf_cr <- function(model){
     acf(e, main = paste("ACF -", room, "кімнатні"))
   }
   par(mfrow = c(1, 1))
+}
+
+
+resplot_matrix_cr <- function(model){
+  data <- model$model
+  e_1k <- residuals(model)[data$Кімнатність == "1"]
+  e_2k <- residuals(model)[data$Кімнатність == "2"]
+  e_3k <- residuals(model)[data$Кімнатність == "3"]
+  
+  pairs(~ e_1k + e_2k + e_3k, 
+        main = "Крос-секційна кореляція залишків")
+}
+
+
+cor_residuals_cr <- function(model){
+  data <- model$model
+  e_1k <- residuals(model)[data$Кімнатність == "1"]
+  e_2k <- residuals(model)[data$Кімнатність == "2"]
+  e_3k <- residuals(model)[data$Кімнатність == "3"]
+  
+  return(cor(cbind(e_1k, e_2k, e_3k)))
+}
+
+
+clean_formula <- function(model) {
+  term_labels <- attr(terms(model), "term.labels")
+  
+  term_labels <- gsub("(I\\()+", "I(", term_labels)
+  term_labels <- gsub("\\)+", ")", term_labels)
+  
+  y_name <- as.character(formula(model))[2]
+  formula_clean <- as.formula(paste(y_name, "~", paste(term_labels, collapse = " + ")))
+  
+  return(formula_clean)
 }
 
 
@@ -116,7 +155,7 @@ df_long <- df_long_date[, -1]
 # кожного типу квартир і мінливість між типами.
 # Варто подумати над використанням R2 within, що показує R2 всередині групи.
 
-# N.B.3. RESET тест потребує незалежний залишків (оскільки він працює на основі
+# N.B.3. RESET тест потребує незалежних залишків (оскільки він працює на основі
 # F-статистики, яка ґрунтується на цьому припущенні). При додатній автокореляції -
 # а також при при кластеризованих даних - p-value може бути заниженим, а при 
 # від'ємній - завищеним.
@@ -408,6 +447,9 @@ ad.test(residuals(model_Sqrt_75_Lg3Sq)) # p-value = 0.5927
 
 # ==== 5) АВТОКОРЕЛЯЦІЯ ====
 time_series_residuals(model_Sqrt_75_Lg3Sq)
+resplot_matrix_cr(model_Sqrt_75_Lg3Sq)
+cor_residuals_cr(model_Sqrt_75_Lg3Sq)
+
 acf_cr(model_Sqrt_75_Lg3Sq)
 # Всюди спостерігається додатна автокореляція першого порядку.
 
@@ -533,10 +575,227 @@ lm3 <- final_models[[3]]
 
 #### lm1 ####
 lm1 <- update(lm1, . ~ . - I(I(I(I(I(I(Долар^2))))))  + Долар^2)
-
+summary(lm1)
 
 aic_base <- AIC(lm1)
 bic_base <- BIC(lm1)
 
 lm1_lmcl <- lm(formula(lm1), data = df_long)
-interactions_result <- observe_best_interactions(lm1_lmcl, df_long_date, top_n = 10)
+interactions_result <- observe_best_interactions(lm1_lmcl, df_long_date, top_n = 30)
+
+# 1. Євро / Долар | ΔAIC = 27.28 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + I(Євро / Долар))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - Євро)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 24.66552
+bic_base - BIC(inter_lm) # 24.66552
+inter_lm1 <- inter_lm
+
+
+# 2. Долар × ІЦБ | ΔAIC = 26.16 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + Долар:ІЦБ)
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - ЧисНасел)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 25.80666
+bic_base - BIC(inter_lm) # 25.80666
+inter_lm2 <- inter_lm
+
+
+# 3. Євро × Долар | ΔAIC = 25.54 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + Долар:Євро)
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - Долар)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 27.28265
+bic_base - BIC(inter_lm) # 27.28265
+inter_lm3 <- inter_lm
+
+
+# 4. Долар / Євро | ΔAIC = 25.25 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + I(Долар / Євро))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - Євро)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 22.93532
+bic_base - BIC(inter_lm) # 22.93532
+
+summary(inter_lm1, vcov = "DK")
+# Яка модель краща (в плані знаків перед коефіцієнтами): 4 чи 1?
+
+inter_lm4 <- inter_lm
+
+
+# 5. ІЦБ / Долар | ΔAIC = 25.22 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + I(ІЦБ / Долар))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - ЧисНасел)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 25.04295
+bic_base - BIC(inter_lm) # 25.04295
+
+inter_lm5 <- inter_lm
+
+
+# 6. ЧисНасел × Кімнатність | ΔAIC = 23.45 | p = 0.0000 
+inter_lm <- update(lm1, . ~ . + ЧисНасел:Кімнатність)
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - ІЦБ)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 10.20238
+bic_base - BIC(inter_lm) # 6.827105
+
+inter_lm6 <- inter_lm
+
+# Яка з моделей краща?
+summary(inter_lm1, vcov = "DK")
+summary(inter_lm2, vcov = "DK") # Не містить ЧисНасел. Може бути корисним для data2.
+summary(inter_lm3, vcov = "DK")
+summary(inter_lm4, vcov = "DK") # lm1 має більш логічні знаки перед коефіцієнтами.
+summary(inter_lm5, vcov = "DK") # ІЦБ/Долар легше інтерпретувати, ніж Долар:ІЦБ (lm2)?
+summary(inter_lm6, vcov = "DK") # Показує різницю у впливі ЧисНасел на К1, К2, К3.
+
+final_models[["9Євро / Долар"]] <- inter_lm1
+final_models[["9Долар × ІЦБ"]] <- inter_lm2
+final_models[["9Євро × Долар"]] <- inter_lm3
+final_models[["9Долар / Євро"]] <- inter_lm4
+final_models[["9ІЦБ / Долар"]] <- inter_lm5
+final_models[["9ЧисНасел × Кімнатність"]] <- inter_lm6
+
+
+#### lm2 ####
+summary(lm2, vcov = "DK")
+aic_base <- AIC(lm2)
+bic_base <- BIC(lm2)
+
+lm2_lmcl <- lm(formula(lm2), data = df_long)
+interactions_result <- observe_best_interactions(lm2_lmcl, df_long_date, top_n = 30)
+
+# -1. Долар / Євро | ΔAIC = 4.00 | p = 0.0166 
+inter_lm <- update(lm2, . ~ . + I(Долар / Євро))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - log(Долар))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - Євро)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # -3.708628
+bic_base - BIC(inter_lm) # -0.3333497
+# Слабко.
+
+
+#### lm3 ####
+summary(lm3, vcov = "DK")
+aic_base <- AIC(lm3)
+bic_base <- BIC(lm3)
+
+lm3_lmcl <- lm(formula(lm3), data = df_long)
+interactions_result <- observe_best_interactions(lm3_lmcl, df_long_date, top_n = 30)
+
+
+# 1. ЧисНасел × Кімнатність | ΔAIC = 14.95 | p = 0.0001 
+inter_lm <- update(lm3, . ~ . + ЧисНасел:Кімнатність)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 14.95298
+bic_base - BIC(inter_lm) # 8.202421
+
+inter_lm7 <- inter_lm
+
+
+# 2. ЧисНасел / РівДолар | ΔAIC = 7.21 | p = 0.0028 
+inter_lm <- update(lm3, . ~ . + I(ЧисНасел / РівДолар))
+summary(inter_lm, vcov = "DK")
+
+inter_lm <- update(inter_lm, . ~ . - РівДолар)
+summary(inter_lm, vcov = "DK")
+
+aic_base - AIC(inter_lm) # 6.706733
+bic_base - BIC(inter_lm) # 6.706733
+# Трохи краще за початкову модель, але і складніше -> відкинемо.
+
+final_models[["4ЧисНасел × Кімнатність"]] <- inter_lm7
+
+
+
+# ======== 8) ВАЛІДАЦІЯ МОДЕЛІ ========
+final_models_lm <- lapply(final_models, function(m) lm(clean_formula(m), data = df_long))
+
+suppressWarnings(
+  models_validation(final_models_lm, data = df_long, kfold_number = 5,
+                    horizon = 1, init_window = 48)
+)
+
+
+
+# ======== 9) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+length(final_models_lm)
+
+residuals_plot(final_models_lm[[1]]) # Задовільно.
+residuals_regressors_plot(final_models_lm[[1]], c(3, 4)) # К3
+
+residuals_plot(final_models_lm[[2]]) 
+residuals_regressors_plot(final_models_lm[[2]], c(3, 4)) # +
+# +
+
+residuals_plot(final_models_lm[[3]]) # Краще.
+residuals_regressors_plot(final_models_lm[[3]], c(3, 4)) # Незначна недооцінка для К2.
+# Хоч тут все непогано, але навіщо нам ця модель, як є така ж із взаємодією (краща)?
+
+residuals_plot(final_models_lm[[4]]) # Майже те саме, що і для 3.
+residuals_regressors_plot(final_models_lm[[4]], c(3, 4)) # Малесенька переоцінка К1.
+# +
+
+residuals_plot(final_models_lm[[5]]) 
+residuals_regressors_plot(final_models_lm[[5]], c(3, 4)) # Незначна К3.
+# +
+
+residuals_plot(final_models_lm[[6]]) 
+residuals_regressors_plot(final_models_lm[[6]], c(3, 4)) # +
+# +
+
+residuals_plot(final_models_lm[[7]])
+residuals_regressors_plot(final_models_lm[[7]], c(3, 3)) # +
+# +
+
+residuals_plot(final_models_lm[[8]]) 
+residuals_regressors_plot(final_models_lm[[8]], c(3, 3)) # +
+# +
+
+residuals_plot(final_models_lm[[9]]) 
+residuals_regressors_plot(final_models_lm[[9]], c(3, 3)) # К1, К3.
+
+residuals_plot(final_models_lm[[10]])
+residuals_regressors_plot(final_models_lm[[10]], c(3, 3)) # +
+# +
+
+
+lm_to_feols_summary(final_models_lm[[2]], df_long_date) #- Протилежні знаки.
+lm_to_feols_summary(final_models_lm[[4]], df_long_date) # Логічніше, вищий R2.
+lm_to_feols_summary(final_models_lm[[5]], df_long_date) # Те саме, але містить Євро замість ЧисНасел.
+lm_to_feols_summary(final_models_lm[[6]], df_long_date) #- Менш логічно.
+lm_to_feols_summary(final_models_lm[[7]], df_long_date) #-
+lm_to_feols_summary(final_models_lm[[8]], df_long_date) #- Частка індекса та зв. змінної?!
+lm_to_feols_summary(final_models_lm[[10]], df_long_date) # Нижчий R2, але модель цікава.
+
+best_models <- final_models_lm[c(4, 5, 10)]
+# Із трьох обраних моделей у плані діаграм розкиду залишків найкращою є 5.
+
+models_validation(best_models, df_long, horizon = 1, kfold_number = 5,
+                  init_window = 48)
+

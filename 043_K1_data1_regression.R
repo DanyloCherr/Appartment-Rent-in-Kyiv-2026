@@ -11,7 +11,7 @@ model_cor_matrix(model1_26_df, "")
 model1_26_df <- upd_model_df(model1_26_df, "ІЦБ")
 model_cor_matrix(model1_26_df, "")
 # Сильно корельованими залишаються Євро і долар. Замінимо їх ефектом взаємодії.
-
+(model_df_26)
 colnames(model1_26_df)[colnames(model1_26_df) == "К1"] <- "Ціна"
 
 model1_26_df_inter <- model1_26_df

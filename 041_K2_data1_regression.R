@@ -502,3 +502,35 @@ inter_lm6 <- inter_lm
 # удвічі менший.
 
 names(final_models2)
+
+
+
+# ======== 10) ВАЛІДАЦІЯ МОДЕЛІ ========
+suppressWarnings(
+  models_validation(final_models2, data = model1_75_df, kfold_number = 5,
+                  horizon = 1, init_window = 48)
+)
+
+
+# ======== 11) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+length(final_models2)
+
+coeftest(final_models2[[1]], vcov = vcovHAC(final_models2[[1]])) # +
+coeftest(final_models2[[2]], vcov = vcovHAC(final_models2[[2]])) # + Долар на межі, вилучили ІГР.
+coeftest(final_models2[[3]], vcov = vcovHAC(final_models2[[3]])) # - Знаки.
+coeftest(final_models2[[4]], vcov = vcovHAC(final_models2[[4]])) # - Знаки.
+
+
+residuals_plot(final_models2[[1]]) 
+residuals_regressors_plot(final_models2[[1]], c(3, 3)) 
+
+residuals_plot(final_models2[[2]]) 
+residuals_regressors_plot(final_models2[[2]], c(3, 3))
+
+# Яка краща? Повернімося до цього питання згодом.
+
+best_models2 <- final_models2[c(1, 2)]
+
+
+models_validation(best_models2, model2_75_df, horizon = 1, kfold_number = 5,
+                  init_window = 48)
