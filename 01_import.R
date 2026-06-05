@@ -169,7 +169,7 @@ POPULATION <- as.data.frame(
   group_by(month) %>%
   slice(1) %>%
   ungroup() %>%
-  select(-month)
+  dplyr::select(-month)
   )
 # Також екстраполюємо дані за останній тиждень листопада 2015 р. на весь місяць.
 POPULATION[1, 1] <- as.Date("2015-11-01", format = "%Y-%m-%d")

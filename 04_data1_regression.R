@@ -68,10 +68,17 @@ model_cor_matrix <- function(model_df, title_param){
 # Таблиць із щоденними даними дуже мало, тому агрегуємо їх до щомісячних:
 # Ціни, USD, EUR, ІФС, агрегуємо перші 7 таблиць
 
+names(data1[1:7])
 data1[1:7] <- aggregate_to_monthly_all(data1[1:7])
 data1 <- sort_by_rows(data1)
 print_heads(data1, 3)
 sapply(data1, nrow)
+
+
+#library(openxlsx)
+# export_df <- merge(data1$USD, data1$EUR, , by = "Дата", all = F)
+# export_df <- merge(export_df, data1$MULTIROOM, , by = "Дата", all = F)
+# write.xlsx(export_df, "ціна_валюта.xlsx", rowNames = FALSE)
 
 
 # Таблиці із щомісячними спостереженнями:
@@ -128,7 +135,7 @@ head(df_predictors26)
 
 
 # ===== 75 спостережень =====
-model_df_75 <- merge(df_predictors75, data1$MULTIROOM, by = "Дата", all = TRUE)
+model_df_75 <- merge(df_predictors75, data1$MULTIROOM, by = "Дата", all = FALSE)
 
 # ===== 38 спостережень =====
 model_df_38 <- merge(df_predictors38, data1$MULTIROOM, by = "Дата", all = FALSE)
@@ -167,4 +174,5 @@ model_df_20q <- merge(df_predictors20q, data1q$MULTIROOM, by = "Дата")
 # ===== 13 спостережень ===== 
 # Дуже мало. Утримаємося.
 model_df_13q <- merge(df_predictors13q, data1q$MULTIROOM, by = "Дата")
+
 

@@ -1,3 +1,4 @@
+library(nortest)
 # ----- 20 СПОСТЕРЕЖЕНЬ -----
 # ==== 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ ====
 model_cor_matrix(model_df_20q[, -1], "")
@@ -208,3 +209,5 @@ suppressWarnings(
 # Тут одна модель найкраща. АЛЕ ВОНА ГІРША ЗА ПОПЕРЕДНІ!
 summary(final_models1q[[1]])
 best_models1 <- append(best_models1, final_models1q)
+
+length(best_models1)

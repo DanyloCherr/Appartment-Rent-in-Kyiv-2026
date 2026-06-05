@@ -1,7 +1,7 @@
 # ----- 26 спостережень -----
 # ==== 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ ====
 model_cor_matrix(model_df_26[, -1], "") # О ГОСПОДИ!
-
+colnames(model_df_26)
 model1_26_df <- upd_model_df(model_df_26, "ЧистГрнКред")
 model_cor_matrix(model1_26_df, "")
 

@@ -208,6 +208,7 @@ all_models <- regsubsets(I(1/Ціна) ~ . + log(РівДолар) + I(Дола�
                          data = model3_75_df, nbest = 3, nvmax = 11)
 best_models <- best_models_summary(all_models, 12)
 
+models_summary(list(model_log3_75_LgSq2))
 # -1.2.4. Повна модель без ІФС | Adj R² = 0.7673 (p = 10)
 lm1 <- update(model_log3_75_LgSq2, . ~ . - ІФС)
 summary(lm1)
@@ -264,6 +265,7 @@ final_models3 = list("8_varRsq3" = lm2, "6_varRsq11" = lm3)
 # Працюємо із двома моделями.
 lm1 <- final_models3[[1]]
 lm2 <- final_models3[[2]]
+models_summary(list(lm1, lm2), model_full = model_log3_75_LgSq2)
 
 #### lm1 ####
 summary(lm1)
@@ -420,5 +422,7 @@ residuals_regressors_plot(final_models3[[4]], c(3, 3))
 
 best_models3 <- final_models3[4]
 
+models_summary(best_models3)
 models_validation(best_models3, model3_75_df, horizon = 1, kfold_number = 5,
                   init_window = 48)
+

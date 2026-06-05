@@ -616,10 +616,34 @@ models_validation <- function(model_list, data, kfold_number = 5,
                 summary(model)$adj.r.squared, 
                 ols_pred_rsq(model),
                 kfold_number, model_cv$results$Rsquared))
-    cat(sprintf("Train RMSE: %.4f   %d-fold RMSE: %.4f   FC RMSE: %.4f\n", 
+    cat(sprintf("Train RMSE: %.8f   %d-fold RMSE: %.4f   FC RMSE: %.4f\n", 
                 rmse_train,
                 kfold_number, model_cv$results$RMSE,
                 model_fc$results$RMSE))
+  }
+}
+
+
+models_summary <- function(models_list, model_full = NULL) {
+  for (model in models_list) {
+    cat("\n========================================\n")
+    model_formula <- clean_formula(model)
+    print(model_formula, showEnv = FALSE)
+    cat("========================================\n")
+    
+    print(coeftest(model, vcov = vcovHAC(model)))
+    
+    cat(sprintf("\nR²: %.4f   R²_adj: %.4f\n", 
+                summary(model)$r.squared, 
+                summary(model)$adj.r.squared))
+    cat(sprintf("AIC: %.2f   BIC: %.2f\n", 
+                AIC(model), BIC(model)))
+    
+    if (!is.null(model_full)) {
+      library(olsrr)
+      cp <- ols_mallows_cp(model, model_full)
+      cat(sprintf("Cp: %.2f\n", cp))
+    }
   }
 }
 
@@ -983,6 +1007,11 @@ coeftest(model_log1_75_Sq, vcov = vcovHAC(model_log1_75_Sq))
 # Стандартні робастні похибки Ньюї-Веста є трохи вищими за звичайні.
 # Проте якщо за рівень значимості брати 5%, то значимість регресорів не порушується.
 
+library(equatiomatic)
+extract_eq(model_log1_75_Sq, use_coefs = TRUE)
+
+formula(model_log1_75_Sq)
+
 
 # UPD. Виправляємо автокореляцію повної моделі.
 # УЗАГАЛЬНЕНІ НАЙМЕНШІ КВАДРАТИ.
@@ -1063,8 +1092,19 @@ analyze_selected_models(all_models, model1_75_df, indices = best_bic, rho = rho)
 # ======== ФІНАЛЬНА МОДЕЛЬ ========
 names(final_models1)
 
+coeftest(model_log1_75_Sq, vcov = vcovHAC(model_log1_75_Sq))
+
+
 summary(lm_Rsq1)
+AIC(lm_Rsq1)
+BIC(lm_Rsq1)
+ols_mallows_cp(lm_Rsq1, model_log1_75_Sq)
+
 summary(lm_BIC3)
+AIC(lm_Rsq1)
+BIC(lm_BIC3)
+ols_mallows_cp(lm_BIC3, model_log1_75_Sq)
+
 
 
 # ==== 7.1) МУЛЬТИКОЛІНЕАРНІСТЬ-2. VIF, ЧИСЛО ОБУМОВЛЕНОСТІ ====
@@ -1267,7 +1307,6 @@ suppressWarnings(
 )
 
 
-
 # ======== 10) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
 length(final_models1)
 
@@ -1289,9 +1328,13 @@ residuals_plot(final_models1[[4]])
 residuals_regressors_plot(final_models1[[4]], c(3, 3)) 
 
 
-best_models1 <- final_models1[c(1, 2, 4)]
+best_models1 <- final_models1[c(1, 2, 4)] # Остання модель мало чим краща (але якщо бентежить значущість
+# Долара, то варто залишити)
 
-models_validation(best_models1[-length(best_models1)], model1_75_df, horizon = 1, kfold_number = 5,
+
+models_validation(best_models1, model1_75_df, horizon = 1, kfold_number = 5,
                   init_window = 48)
+
+models_summary(best_models1, model_log1_75_Sq)
 
 

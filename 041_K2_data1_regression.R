@@ -206,6 +206,7 @@ coeftest(model_log2_75_SqSq, vcov = vcovHAC(model_log2_75_SqSq))
 # ==== 8) ВІДБІР ЗМІННИХ ====
 e2 <- residuals(model_log2_75_SqSq)
 rho2 <- cor(e2[-1], e2[-length(e2)])
+summary(model_log2_75_SqSq)
 
 all_models <- regsubsets(log(Ціна) ~ . + I(Долар^2) + I(Євро^2), data = model2_75_df, nbest = 3)
 best_models <- best_models_summary(all_models, 10)
@@ -375,6 +376,7 @@ coeftest(lm2K_inter, vcov = vcovHAC(lm2K_inter))
 # Працюємо із двома моделями.
 lm1 <- final_models2[[1]]
 lm2 <- final_models2[[2]]
+models_summary(list(lm1, lm2), model_full = model_log2_75_SqSq)
 
 #### lm1 ####
 summary(lm1)
@@ -531,6 +533,7 @@ residuals_regressors_plot(final_models2[[2]], c(3, 3))
 
 best_models2 <- final_models2[c(1, 2)]
 
-
+models_summary(best_models2)
 models_validation(best_models2, model2_75_df, horizon = 1, kfold_number = 5,
                   init_window = 48)
+

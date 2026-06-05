@@ -456,6 +456,7 @@ acf_cr(model_Sqrt_75_Lg3Sq)
 
 # ==== 6) ВІДБІР ЗМІННИХ ====
 e <- residuals(model_Sqrt_75_Lg3Sq)
+models_summary(list(model_Sqrt_75_Lg3Sq))
 rho <- cor(e[-1], e[-length(e)])
 
 all_models <- regsubsets(formula(model_Sqrt_75_Lg3Sq), 
@@ -571,6 +572,20 @@ final_models = list("9_var" = lm1, "7_var" = lm3, "4_var" = lm4)
 lm1 <- final_models[[1]]
 lm2 <- final_models[[2]]
 lm3 <- final_models[[3]]
+
+summary(lm1, vcov = "DK")
+AIC(lm1)
+BIC(lm1)
+
+summary(lm2, vcov = "DK")
+AIC(lm2)
+BIC(lm2)
+
+summary(lm3, vcov = "DK")
+AIC(lm3)
+BIC(lm3)
+
+
 
 
 #### lm1 ####
@@ -788,13 +803,18 @@ residuals_regressors_plot(final_models_lm[[10]], c(3, 3)) # +
 lm_to_feols_summary(final_models_lm[[2]], df_long_date) #- Протилежні знаки.
 lm_to_feols_summary(final_models_lm[[4]], df_long_date) # Логічніше, вищий R2.
 lm_to_feols_summary(final_models_lm[[5]], df_long_date) # Те саме, але містить Євро замість ЧисНасел.
+summary(final_models_lm[[10]])
+AIC(final_models_lm[[5]])
+BIC(final_models_lm[[5]])
 lm_to_feols_summary(final_models_lm[[6]], df_long_date) #- Менш логічно.
 lm_to_feols_summary(final_models_lm[[7]], df_long_date) #-
 lm_to_feols_summary(final_models_lm[[8]], df_long_date) #- Частка індекса та зв. змінної?!
 lm_to_feols_summary(final_models_lm[[10]], df_long_date) # Нижчий R2, але модель цікава.
+AIC(final_models_lm[[10]])
+BIC(final_models_lm[[10]])
 
-best_models <- final_models_lm[c(4, 5, 10)]
-# Із трьох обраних моделей у плані діаграм розкиду залишків найкращою є 5.
+best_models <- final_models_lm[c(5, 10)]
+# Із трьох (була ще 4) обраних моделей у плані діаграм розкиду залишків найкращою є 5.
 
 models_validation(best_models, df_long, horizon = 1, kfold_number = 5,
                   init_window = 48)
