@@ -107,19 +107,6 @@ cor_residuals_cr <- function(model){
 }
 
 
-clean_formula <- function(model) {
-  term_labels <- attr(terms(model), "term.labels")
-  
-  term_labels <- gsub("(I\\()+", "I(", term_labels)
-  term_labels <- gsub("\\)+", ")", term_labels)
-  
-  y_name <- as.character(formula(model))[2]
-  formula_clean <- as.formula(paste(y_name, "~", paste(term_labels, collapse = " + ")))
-  
-  return(formula_clean)
-}
-
-
 # Стовпець із Дата нам ще знадобиться.
 model_75_df_date <- model_df_75[, !names(model_df_75) %in% c("Ч")]
 df_long_date <- model_75_df_date %>%

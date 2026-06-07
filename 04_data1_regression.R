@@ -62,23 +62,18 @@ model_cor_matrix <- function(model_df, title_param){
            mar = c(2, 0, 0, 0))
   
   mtext(title_param, side = 1, line = 2, cex = 1.2)
+  return(cor_matrix)
 }
 
 
 # Таблиць із щоденними даними дуже мало, тому агрегуємо їх до щомісячних:
-# Ціни, USD, EUR, ІФС, агрегуємо перші 7 таблиць
+# Ціни, USD, EUR, ІФС, агрегуємо 7 таблиць
 
-names(data1[1:7])
-data1[1:7] <- aggregate_to_monthly_all(data1[1:7])
+names(data1[c(1:6, 8)])
+data1[c(1:6, 8)] <- aggregate_to_monthly_all(data1[c(1:6, 8)])
 data1 <- sort_by_rows(data1)
 print_heads(data1, 3)
 sapply(data1, nrow)
-
-
-#library(openxlsx)
-# export_df <- merge(data1$USD, data1$EUR, , by = "Дата", all = F)
-# export_df <- merge(export_df, data1$MULTIROOM, , by = "Дата", all = F)
-# write.xlsx(export_df, "ціна_валюта.xlsx", rowNames = FALSE)
 
 
 # Таблиці із щомісячними спостереженнями:

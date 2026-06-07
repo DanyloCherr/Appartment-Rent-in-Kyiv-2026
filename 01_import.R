@@ -21,7 +21,6 @@ importf <- function(filename, date_format){
     table[, 1] <- paste0(table[, 1], "-01")
   }
   
-  
   table[, 1] <- as.Date(as.character(table[, 1]), format = date_format)
   table[, -1] <- sapply(table[, -1], function(x){
     x <- gsub(",", ".", x)
@@ -33,23 +32,45 @@ importf <- function(filename, date_format){
 }
 
 
+convert_quarters_to_dates <- function(filename) {
+  data <- import(get_csv_name(filename))
+  quarter_to_date <- function(q_string) {
+    parts <- strsplit(q_string, "\\.")[[1]]
+    quarter <- as.numeric(gsub("Q", "", parts[1]))
+    year <- as.numeric(parts[2]) + 2000  # припускаємо 2000+
+    
+    # Перший місяць квартала
+    month <- (quarter - 1) * 3 + 1
+    
+    as.Date(sprintf("%d-%02d-01", year, month))
+  }
+  
+  data[[1]] <- as.Date(sapply(data[[1]], quarter_to_date))
+  
+  return(data)
+}
+
+
+convert_decimal_year_to_date <- function(filename) {
+  data <- import(get_csv_name(filename))
+  data[[1]] <- sapply(data[[1]], function(x) {
+    year <- floor(x)
+    month <- round((x - year) * 12) + 1
+    if (month == 13) month <- 12
+    as.Date(sprintf("%d-%02d-01", year, month))
+  })
+  
+  data[[1]] <- as.Date(data[[1]], origin = "1970-01-01")
+  
+  return(data)
+}
+
+
 # ---Курс євро---
 EUR <- importf("EUR", "%d.%m.%Y")
-
-# Видалимо зайві (порожні) стовпці та встановимо коректний заголовок
-EUR <- EUR[-1, -c(3,4)]
+EUR[EUR$`Кількість одиниць` == 100, 7] <- round(EUR[EUR$`Кількість одиниць` == 100, 7] / 100, 2)
+EUR <- EUR[, c(1, 7)]
 colnames(EUR) <- c("Дата", "Євро")
-
-# Після видалення рядка змістимо нумерацію рядків, щоб номери йшли підряд від 1
-rownames(EUR) <- NULL
-
-
-# ---Курс долара, кімнатність---
-MULTIROOM <- importf("Price, dollar", "%d.%m.%y")
-# colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3", "Долар")
-# На жаль, "Курс долара" містить більше сотні пропусків, тому завантажимо дані від НБУ окремо
-MULTIROOM <- MULTIROOM[, -5]
-colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
 
 
 # ---Курс долара---
@@ -57,6 +78,12 @@ USD <- importf("USD", "%d.%m.%Y")
 USD[USD$`Кількість одиниць` == 100, 7] <- round(USD[USD$`Кількість одиниць` == 100, 7] / 100, 2)
 USD <- USD[, c(1, 7)]
 colnames(USD) <- c("Дата", "Долар")
+
+
+# ---Ціни на квартири---
+MULTIROOM <- importf("Price, dollar", "%Y-%m-%d")
+MULTIROOM <- MULTIROOM[, -5]
+colnames(MULTIROOM) <- c("Дата", "К1", "К2", "К3")
 
 
 # ---1-кімнатні квартири---
@@ -75,7 +102,9 @@ colnames(TRPROOM)[2] <- "Ціна"
 
 
 # ---Активність на ринку житла---
-ACTIVITY <- importf("Активність на ринку житла", "%d.%m.%Y")
+ACTIVITY <- convert_quarters_to_dates("Активність на ринку житла")
+ACTIVITY <- ACTIVITY[, -2]
+ACTIVITY[, 2] <- as.numeric(gsub(",", ".", ACTIVITY[, 2]))
 colnames(ACTIVITY)[2] <- "Активність"
 
 
@@ -85,18 +114,23 @@ colnames(HH_DEBT_BURDEN)[2] <- "БоргНавантаж"
 
 
 # ---Введення в експлуатацію житла---
-HOUSING_COMPLETIONS <- importf("Введення в експлуатацію житла", "%d.%m.%Y")
-colnames(HOUSING_COMPLETIONS)[2] <- "ВведЖитла"
+HOUSING_COMPLETIONS <- convert_quarters_to_dates("Введення в експлуатацію житла")
+HOUSING_COMPLETIONS[, 2] <- as.numeric(gsub(",", ".", HOUSING_COMPLETIONS[, 2]))
+HOUSING_COMPLETIONS[, 3] <- as.numeric(gsub(",", ".", HOUSING_COMPLETIONS[, 3]))
+HOUSING_COMPLETIONS$ВведЖитла <- HOUSING_COMPLETIONS$`Багатоквартирне житло` + HOUSING_COMPLETIONS$`Одноквартирні будинки та гуртожитки`
+HOUSING_COMPLETIONS <- HOUSING_COMPLETIONS[, c(1, 4)]
+colnames(HOUSING_COMPLETIONS)[1] <- "Дата"
 
 
 # ---Індекс геополітичних ризиків---
-GPR_INDEX <- importf("Індекс геополітичних ризиків", "%d.%m.%Y")
-colnames(GPR_INDEX)[2] <- "ІГР"
+GPR_INDEX <- convert_decimal_year_to_date("Індекс геополітичних ризиків")
+colnames(GPR_INDEX) <- c("Дата", "ІГР")
 
 
 # ---Індекс фінансового стресу---
 FS_INDEX <- importf("Індекс фінансового стресу", "%d.%m.%Y")
-colnames(FS_INDEX)[2] <- "ІФС"
+FS_INDEX[, 2] <- as.numeric(gsub(",", ".", FS_INDEX[, 2]))
+colnames(FS_INDEX) <- c("Дата", "ІФС")
 
 
 # ---Індекс цін на житло на вторинному ринку---
@@ -112,6 +146,15 @@ colnames(NEW_HPRICE_INDEX) <- c("Дата", "ІЦЖП")
 # ---Індекс цін у будівництві---
 CP_INDEX <- importf("Індекс цін у будівництві", "%d.%m.%Y")
 colnames(CP_INDEX) <- c("Дата", "ІЦБ")
+
+
+# ---Індекси цін (щомісячні, для другого періоду)---
+PRICE_INDICIES <- importf("Індекси цін у будівництві та на житло", "%d.%m.%Y")
+PRICE_INDICIES[, 1] <- floor_date(PRICE_INDICIES[, 1], "month")
+PRICE_INDICIES[, 2] <- as.numeric(gsub(",", ".", PRICE_INDICIES[, 2]))
+PRICE_INDICIES[, 3] <- as.numeric(gsub(",", ".", PRICE_INDICIES[, 3]))
+PRICE_INDICIES[, 4] <- as.numeric(gsub(",", ".", PRICE_INDICIES[, 4]))
+colnames(PRICE_INDICIES) <- c("Дата", "ІЦБ", "ІЦЖП", "ІЦЖВ")
 
 
 # ---Обсяг чистих гривневих кредитів---
@@ -133,13 +176,27 @@ DOLLARIZATION_LEVEL <- DOLLARIZATION_LEVEL[-1, -3]
 rownames(DOLLARIZATION_LEVEL) <- NULL
 
 
+# ---Рівень валютизації коштів фізосіб і бізнесу (для другого періода)---
+DOL_LEVEL_AVG <- importf("Частка валютних коштів", "%d.%m.%Y")
+DOL_LEVEL_AVG[, 2] <- as.numeric(gsub(",", ".", DOL_LEVEL_AVG[, 2]))
+DOL_LEVEL_AVG[, 3] <- as.numeric(gsub(",", ".", DOL_LEVEL_AVG[, 3]))
+DOL_LEVEL_AVG$РівДолар <- (DOL_LEVEL_AVG[, 2] + DOL_LEVEL_AVG[, 3]) / 2
+DOL_LEVEL_AVG <- DOL_LEVEL_AVG[, c(1, 4)]
+colnames(DOL_LEVEL_AVG)[1] <- "Дата"
+
+cor(merge(DOL_LEVEL_AVG, DOLLARIZATION_LEVEL, by = "Дата")[, -1])
+# РівДолар.x РівДолар.y
+# РівДолар.x  1.0000000  0.9971017
+# РівДолар.y  0.9971017  1.0000000
+# Отже, змінні статистично однакові. Можна не переживати.
+
+
 # ---Річні темпи зміни коштів фізосіб---
 # Вимірюється у відсотках!
 HH_DEPOSITS_ANNUAL_GROWTH <- importf("Річні темпи зміни коштів фізосіб", "%d.%m.%Y")
 colnames(HH_DEPOSITS_ANNUAL_GROWTH) <- c("Дата", "ТемпЗмінКошт")
-HH_DEPOSITS_ANNUAL_GROWTH <- HH_DEPOSITS_ANNUAL_GROWTH[-1, c(1,2)]
-rownames(HH_DEPOSITS_ANNUAL_GROWTH) <- NULL
 HH_DEPOSITS_ANNUAL_GROWTH[[1]] <- floor_date(HH_DEPOSITS_ANNUAL_GROWTH[[1]], "month")
+HH_DEPOSITS_ANNUAL_GROWTH[[2]] <- as.numeric(gsub(",", ".", HH_DEPOSITS_ANNUAL_GROWTH[, 2]))
 
 
 # ---Розмір компенсації від держави---
@@ -154,9 +211,11 @@ FLOW <- STATE_COMPENS_AMOUNT[, c(1, 3)]
 
 
 # ---Споживчі настрої домогосподарств---
-CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%Y-%m-%d")
+CONSUMER_CONFIDENCE <- importf("Споживчі настрої домогосподарств", "%d.%m.%Y")
 colnames(CONSUMER_CONFIDENCE) <- c("Дата", "ІндМатСтан") # Індекс поточного особистого матеріального становища
 CONSUMER_CONFIDENCE[[1]] <- floor_date(CONSUMER_CONFIDENCE[[1]], "month")
+CONSUMER_CONFIDENCE[[2]] <- as.numeric(gsub(",", ".", CONSUMER_CONFIDENCE[, 2]))
+
 
 # ---Чисельність населення---
 POPULATION <- importf("Чисельність населення", "%d.%m.%Y")

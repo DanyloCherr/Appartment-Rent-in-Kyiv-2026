@@ -1,4 +1,5 @@
 library(here)
+library(nortest)
 rm(list = ls())
 
 
@@ -28,7 +29,8 @@ source(get_R_name("041_K3_data1_regression"), echo = !(is_markdown))
 source(get_R_name("044(q)_K3_data1_regression"), echo = !(is_markdown))
 source(get_R_name("041_ind_data1_regression"), echo = !(is_markdown))
 source(get_R_name("044(q)_ind_data1_regression"), echo = !(is_markdown))
-
+source(get_R_name("05_data2_regression"), echo = !(is_markdown))
+source(get_R_name("051_K1_data2_regression"), echo = !(is_markdown))
 
 sink()
 dev.off()

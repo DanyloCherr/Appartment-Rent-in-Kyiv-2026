@@ -648,6 +648,19 @@ models_summary <- function(models_list, model_full = NULL) {
 }
 
 
+clean_formula <- function(model) {
+  term_labels <- attr(terms(model), "term.labels")
+  
+  term_labels <- gsub("(I\\()+", "I(", term_labels)
+  term_labels <- gsub("\\)+", ")", term_labels)
+  
+  y_name <- as.character(formula(model))[2]
+  formula_clean <- as.formula(paste(y_name, "~", paste(term_labels, collapse = " + ")))
+  
+  return(formula_clean)
+}
+
+
 # ----- 75 СПОСТЕРЕЖЕНЬ -----
 # ==== 1) МУЛЬТИКОЛІНЕАРНІСТЬ-1. КОРЕЛЯЦІЙНА МАТРИЦЯ ====
 cor_matrix_75 <- model_cor_matrix(model_df_75[, -1], "")

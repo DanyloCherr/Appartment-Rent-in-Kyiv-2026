@@ -80,11 +80,10 @@ get_split_periods <- function(all_tables, min_obs = 10, date = "2022-02-01"){ # 
 }
   
 
-### Дані за весь період із 2015 до 2025.
-cat("Всього факторів:", length(all_tables))
+### Дані за весь період із 2015 до 2026.
+cat("Всього таблиць:", length(all_tables)) # Пам'ятаймо, що дві таблиці - для другого періода.
 
-combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
-
+combined_plots(all_tables[!names(all_tables) %in% c("MULTIROOM", "PRICE_INDICIES")])
 
 
 # =======ПОТЕНЦІЙНІ ПРОБЛЕМИ=======
@@ -92,6 +91,7 @@ combined_plots(all_tables[names(all_tables) != "MULTIROOM"])
 
 splt_data <- get_split_periods(all_tables, date = "2022-01-01") # UPD
 data1 <- splt_data$period1
+data1 <- data1[names(data1) != "DOL_LEVEL_AVG"] # Середнє рівня валютизації - для 2 періода.
 for(name in names(data1)){ # UPD
   data1[[name]] <- data1[[name]][data1[[name]]$Дата >= "2016-01-01", ]
 }
@@ -126,10 +126,10 @@ if(is_markdown){
 ### data2 (другий період)
 cat("Змінні, що залишились в data2:", "\n", paste(names(data2), collapse = "\n"), 
     "\n", "Всього:", length(data2))
-# Випало 2 змінні.
+# Випала 1 змінна (чисельність населення).
 
 
-if(is_markdown){
+if(!is_markdown){
   combined_plots(data2[names(data2) != "MULTIROOM"])
 }
 
