@@ -398,13 +398,14 @@ final_models3[["6Євро / РівДолар"]] <- inter_lm1
 final_models3[["6РівДолар / Євро"]] <- inter_lm2
 
 
+# ======== 9) ВАЛІДАЦІЯ МОДЕЛІ ========
 suppressWarnings(
   models_validation(final_models3, data = model3_75_df, kfold_number = 5,
                     horizon = 1, init_window = 48)
 )
 
 
-# ======== 11) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
+# ======== 10) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
 length(final_models3)
 
 coeftest(final_models3[[1]], vcov = vcovHAC(final_models3[[1]])) # - Сповільнення Долара.

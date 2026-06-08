@@ -97,20 +97,36 @@ residuals_regressors_plot <- function(model, nr_nc, type = "response") {
   for (pred in predictors) {
     if (grepl(":", pred)) {
       parts <- strsplit(pred, ":")[[1]]
-      matching_idx <- which(grepl(parts[1], mm_cols) & grepl(parts[2], mm_cols))[1]
+      
+      # Знайти стовпець, що містить ОБИДВІ частини
+      matching_idx <- which(
+        grepl(parts[1], mm_cols, fixed = TRUE) & 
+          grepl(parts[2], mm_cols, fixed = TRUE)
+      )[1]
+      
+      if (is.na(matching_idx)) {
+        # Спроба 2: замінити "log(X)" на "log\\(X\\)" для регулярного виразу
+        parts_regex <- gsub("([()])", "\\\\\\1", parts)
+        matching_idx <- which(
+          grepl(parts_regex[1], mm_cols) & 
+            grepl(parts_regex[2], mm_cols)
+        )[1]
+      }
       
       if (is.na(matching_idx)) {
         cat("Пропущено:", pred, "— не знайдено\n")
         next
       }
+      
       x_vals <- mm[, matching_idx]
       res_vals <- switch(type,
                          "rstudent"  = rstudent(model),
                          "rstandard" = rstandard(model),
                          residuals(model)
       )
+      
       plot(x_vals, res_vals,
-           col = "steelblue", pch = 19, cex = 1,
+           col = "steelblue", pch = 19, cex = 0.9,
            xlab = pred, ylab = "")
       grid(col = "gray80", lty = "solid")
       abline(h = 0, col = "gray50", lty = 2)
@@ -419,11 +435,12 @@ observe_transforms_y <- function(model){
 }
 
 
-observe_best_interactions <- function(model, data, top_n = 5){
+observe_best_interactions <- function(model, data, top_n = 5, complex_interactions = FALSE){
   predictors <- attr(terms(model), "term.labels")
   
-  # Складні ефекти взаємодії не розглядаємо
-  predictors <- predictors[!grepl("\\^|log\\(|sqrt\\(|I\\(", predictors)]
+  if(!complex_interactions){# Складні ефекти взаємодії не розглядаємо
+    predictors <- predictors[!grepl("\\^|log\\(|sqrt\\(|I\\(", predictors)]
+  }
   
   results <- data.frame(
     interaction = character(),
@@ -616,7 +633,7 @@ models_validation <- function(model_list, data, kfold_number = 5,
                 summary(model)$adj.r.squared, 
                 ols_pred_rsq(model),
                 kfold_number, model_cv$results$Rsquared))
-    cat(sprintf("Train RMSE: %.8f   %d-fold RMSE: %.4f   FC RMSE: %.4f\n", 
+    cat(sprintf("Train RMSE: %.4f   %d-fold RMSE: %.4f   FC RMSE: %.4f\n", 
                 rmse_train,
                 kfold_number, model_cv$results$RMSE,
                 model_fc$results$RMSE))

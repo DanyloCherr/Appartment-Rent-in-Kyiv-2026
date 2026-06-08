@@ -11,7 +11,7 @@ print_heads(data2, 3)
 # MULTIROOM                   TRPROOM                  FS_INDEX                 GPR_INDEX 
 # 53                        53                        47                        53 
 # DOL_LEVEL_AVG       CONSUMER_CONFIDENCE            PRICE_INDICIES             NET_UAH_LOANS 
-# 47                        47                        46                        46 
+# 47                        47                        46                        48 
 
 # HH_DEPOSITS_ANNUAL_GROWTH                   
 #              22                              
@@ -24,10 +24,13 @@ predictors2 <- c("EUR", "USD", "FS_INDEX", "GPR_INDEX",
                 "NET_UAH_LOANS") # Спільні предиктори для всіх К
 
 
+
 # Щомісячні дані (46 спостережень)
 df_predictors2 <- data2$EUR
 
+
 for(name in predictors2[-1]){
+  print(name)
   df_predictors2 <- merge(df_predictors2, data2[[name]], by = "Дата", all = FALSE)
 }
 
@@ -42,5 +45,9 @@ head(df_predictors2)
 model_df_2 <- merge(df_predictors2, data2$MULTIROOM, by = "Дата", all = FALSE)
 head(model_df_2)
 
+
+model_df_2_22 <- merge(model_df_2, data2$HH_DEPOSITS_ANNUAL_GROWTH, by = "Дата", all = FALSE)
+model_df_2_22$Ч <- 1:nrow(model_df_2_22)
+head(model_df_2_22)
 
 

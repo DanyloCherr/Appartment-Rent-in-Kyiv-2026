@@ -95,3 +95,4 @@ all_tables$PRICE_INDICIES <- na.omit(all_tables$PRICE_INDICIES)
 import_validation(all_tables)
 
 all_summaries(all_tables)
+

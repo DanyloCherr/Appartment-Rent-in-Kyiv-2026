@@ -158,7 +158,8 @@ colnames(PRICE_INDICIES) <- c("Дата", "ІЦБ", "ІЦЖП", "ІЦЖВ")
 
 
 # ---Обсяг чистих гривневих кредитів---
-NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів", "%d.%m.%Y")
+NET_UAH_LOANS <- importf("Обсяг чистих гривневих кредитів (юрособи)", "%d.%m.%Y")
+NET_UAH_LOANS[, 2] <- as.numeric(gsub(",", ".", NET_UAH_LOANS[, 2]))
 colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
 NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
 
@@ -182,7 +183,7 @@ DOL_LEVEL_AVG[, 2] <- as.numeric(gsub(",", ".", DOL_LEVEL_AVG[, 2]))
 DOL_LEVEL_AVG[, 3] <- as.numeric(gsub(",", ".", DOL_LEVEL_AVG[, 3]))
 DOL_LEVEL_AVG$РівДолар <- (DOL_LEVEL_AVG[, 2] + DOL_LEVEL_AVG[, 3]) / 2
 DOL_LEVEL_AVG <- DOL_LEVEL_AVG[, c(1, 4)]
-colnames(DOL_LEVEL_AVG)[1] <- "Дата"
+colnames(DOL_LEVEL_AVG) <- c("Дата", "РівДолар")
 
 cor(merge(DOL_LEVEL_AVG, DOLLARIZATION_LEVEL, by = "Дата")[, -1])
 # РівДолар.x РівДолар.y
