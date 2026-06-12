@@ -68,9 +68,10 @@ model_cor_matrix <- function(model_df, title_param){
 
 # Таблиць із щоденними даними дуже мало, тому агрегуємо їх до щомісячних:
 # Ціни, USD, EUR, ІФС, агрегуємо 7 таблиць
-
-names(data1[c(1:6, 8)])
-data1[c(1:6, 8)] <- aggregate_to_monthly_all(data1[c(1:6, 8)])
+data1 <- sort_by_rows(data1)
+sapply(data1, nrow)
+names(data1[c(1:7)])
+data1[c(1:7)] <- aggregate_to_monthly_all(data1[c(1:7)])
 data1 <- sort_by_rows(data1)
 print_heads(data1, 3)
 sapply(data1, nrow)
@@ -96,6 +97,10 @@ sapply(data1, nrow)
 # ===== Таблиці предикторів =====
 predictors <- c("EUR", "USD", "FS_INDEX", "GPR_INDEX", 
                 "CP_INDEX", "POPULATION", "DOLLARIZATION_LEVEL") # Спільні предиктори для всіх К
+
+for(name in (predictors)){
+  cat("Таблиця:", name, "— стовпці:", paste(colnames(data1[[name]]), collapse = ", "), "\n")
+}
 
 # Щомісячні дані
 df_predictors75 <- data1$EUR
@@ -169,5 +174,7 @@ model_df_20q <- merge(df_predictors20q, data1q$MULTIROOM, by = "Дата")
 # ===== 13 спостережень ===== 
 # Дуже мало. Утримаємося.
 model_df_13q <- merge(df_predictors13q, data1q$MULTIROOM, by = "Дата")
+
+
 
 

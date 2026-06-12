@@ -7,7 +7,7 @@ colnames(model1_df)[colnames(model1_df) == "К1"] <- "Ціна"
 model_cor_matrix(model1_df, "")
 
 model1_df$`Євро_Долар` <- model1_df$Євро / model1_df$Долар
-model1_df <- model1_df[!names(model1_df) %in% c("ІЦЖВ", "ЧистГрнКред")]
+model1_df <- model1_df[!names(model1_df) %in% c("ІЦЖВ")]
 model1_df <- model1_df[!names(model1_df) %in% c("Євро", "Долар")]
 model_cor_matrix(model1_df, "")
 
@@ -25,14 +25,10 @@ model1_df_norm <- as.data.frame(lapply(model1_df, unit_length_scale))
 
 model_full1_2_norm <- lm(Ціна ~ ., data = model1_df_norm)
 vif(model_full1_2_norm)
-# ІФС        ІГР        ІЦБ       ІЦЖВ ІндМатСтан   РівДолар Євро_Долар 
-# 4.183288   6.967531  11.190711   5.493593   3.932199   2.415863   2.257848 
-# Погано. Повернімося назад і вилучимо ІЦЖВ замість ІЦЖП.
+# ІФС         ІГР         ІЦБ        ІЦЖП  ІндМатСтан    РівДолар ЧистГрнКред  Євро_Долар 
+# 4.372233    8.758243    9.578793    5.982114    4.752739    3.015318    3.668954    3.188518 
 
-# ІФС        ІГР        ІЦБ       ІЦЖП ІндМатСтан   РівДолар Євро_Долар 
-# 4.357019   7.103669   9.394029   4.431241   4.214926   2.422075   2.246537 
-
-condition_number(model1_df_norm, 0) # 39.79285
+condition_number(model1_df_norm, 0) # 48.08488
 
 
 
@@ -47,14 +43,13 @@ df_fits(model_full1_2)
 
 df_betas(model_full1_2)
 
-# Спостереження 1 8 13 не пройшли жодного з тестів.
 # Повернімося до дослідження їхнього впливу в кінці.
 
 
 
 # ==== 4) ФУНКЦІОНАЛЬНІ ПЕРЕТВОРЕННЯ ====
 # ЛІНІЙНІСТЬ І ГОМОСКЕДАСТИЧНІСТЬ
-plot(model_full1_2, which = 1) # U-shape
+plot(model_full1_2, which = 1) # Хвиля.
 
 residuals_regressors_plot(model_full1_2, c(2, 4), type = "rstudent")
 # Тенденцій не видно.
@@ -62,17 +57,22 @@ residuals_regressors_plot(model_full1_2, c(2, 4), type = "rstudent")
 
 av_plots(model_full1_2) # ІЦЖП - під питанням.
 
-crPlots(model_full1_2) # Євро_Долар - U-shape.
+crPlots(model_full1_2)
 
-resettest(model_full1_2, power = 2) # p-value = 0.002734
+resettest(model_full1_2, power = 2) # p-value = 0.04072
 
 plot(model_full1_2, which = 3)
 
-bptest(model_full1_2) # p-value = 0.1469
+bptest(model_full1_2) # p-value = 0.4956
 
 bc <- boxcox(model_full1_2, lambda = seq(-2, 2, by = 0.1))
 lambda_opt <- bc$x[which.max(bc$y)]
-cat("Оптимальне λ:", round(lambda_opt, 2), "\n") # -0.1
+cat("Оптимальне λ:", round(lambda_opt, 2), "\n") # 0.4956
+# ДІ містить 1.
+
+observe_transforms_y(model_full1_2)
+
+observe_transforms_x(model_full1_2, regressors = names(coef(model_full1_2))[-1])
 
 model_log1_2 <- lm(log(Ціна) ~ ., data = model1_df)
 summary(model_log1_2)

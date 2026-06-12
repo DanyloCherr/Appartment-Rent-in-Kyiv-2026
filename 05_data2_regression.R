@@ -10,7 +10,7 @@ print_heads(data2, 3)
 # 54                        53                        53                        53 
 # MULTIROOM                   TRPROOM                  FS_INDEX                 GPR_INDEX 
 # 53                        53                        47                        53 
-# DOL_LEVEL_AVG       CONSUMER_CONFIDENCE            PRICE_INDICIES             NET_UAH_LOANS 
+# DOL_LEVEL_AVG       CONSUMER_CONFIDENCE            PRICE_INDICIES             NET_UAH_LOANS_P 
 # 47                        47                        46                        48 
 
 # HH_DEPOSITS_ANNUAL_GROWTH                   
@@ -21,7 +21,7 @@ print_heads(data2, 3)
 
 predictors2 <- c("EUR", "USD", "FS_INDEX", "GPR_INDEX", 
                 "PRICE_INDICIES", "CONSUMER_CONFIDENCE", "DOL_LEVEL_AVG",
-                "NET_UAH_LOANS") # Спільні предиктори для всіх К
+                "NET_UAH_LOANS_P") # Спільні предиктори для всіх К
 
 
 

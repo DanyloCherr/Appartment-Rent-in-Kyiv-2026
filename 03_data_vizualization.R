@@ -91,7 +91,7 @@ combined_plots(all_tables[!names(all_tables) %in% c("MULTIROOM", "PRICE_INDICIES
 
 splt_data <- get_split_periods(all_tables, date = "2022-01-01") # UPD
 data1 <- splt_data$period1
-data1 <- data1[names(data1) != "DOL_LEVEL_AVG"] # Середнє рівня валютизації - для 2 періода.
+data1 <- data1[!names(data1) %in% c("DOL_LEVEL_AVG", "NET_UAH_LOANS_P")] # Середнє рівня валютизації - для 2 періода.
 for(name in names(data1)){ # UPD
   data1[[name]] <- data1[[name]][data1[[name]]$Дата >= "2016-01-01", ]
 }
