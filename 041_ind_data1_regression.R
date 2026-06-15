@@ -764,7 +764,7 @@ residuals_regressors_plot(final_models_lm[[4]], c(3, 4)) # Малесенька 
 # +
 
 residuals_plot(final_models_lm[[5]]) 
-residuals_regressors_plot(final_models_lm[[5]], c(3, 4)) # Незначна К3.
+residuals_regressors_plot(final_models_lm[[5]], c(3, 3)) # Незначна К3.
 # +
 
 residuals_plot(final_models_lm[[6]]) 
@@ -783,7 +783,7 @@ residuals_plot(final_models_lm[[9]])
 residuals_regressors_plot(final_models_lm[[9]], c(3, 3)) # К1, К3.
 
 residuals_plot(final_models_lm[[10]])
-residuals_regressors_plot(final_models_lm[[10]], c(3, 3)) # +
+residuals_regressors_plot(final_models_lm[[10]], c(2, 2)) # +
 # +
 
 
@@ -803,6 +803,7 @@ BIC(final_models_lm[[10]])
 best_models <- final_models_lm[c(5, 10)]
 # Із трьох (була ще 4) обраних моделей у плані діаграм розкиду залишків найкращою є 5.
 
+models_summary(best_models)
 models_validation(best_models, df_long, horizon = 1, kfold_number = 5,
                   init_window = 48)
 

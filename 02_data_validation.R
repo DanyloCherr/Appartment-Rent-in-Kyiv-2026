@@ -39,6 +39,7 @@ all_summaries <- function(tables){
     cat("\n=============================\n")
     cat(table_name, "\n")
     print(summary(tables[[table_name]]))
+    cat("nrow:", nrow(tables[[table_name]]))
   }
 }
 

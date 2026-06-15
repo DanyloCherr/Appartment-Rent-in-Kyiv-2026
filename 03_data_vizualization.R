@@ -47,6 +47,39 @@ combined_plots <- function(tables, highlight_df = NULL) {
 }
 
 
+combined_plots_png <- function(tables, filename = "all_plots.png", 
+                               ncol = 4, highlight_df = NULL) {
+  plot_list <- list()
+  
+  for (table_name in names(tables)) {
+    current_df <- tables[[table_name]]
+    x_col <- colnames(current_df)[1]
+    y_col <- colnames(current_df)[2]
+    
+    p1 <- ggplot(current_df, aes(x = .data[[x_col]], y = .data[[y_col]])) +
+      geom_path(color = "steelblue") + 
+      labs(title = table_name, x = "", y = y_col) +
+      theme_minimal()
+    
+    if (nrow(current_df) < 70) {
+      p1 <- p1 + geom_point(color = "red", size = 1.25)
+    }
+    
+    p2 <- ggplot(current_df, aes(y = .data[[y_col]])) +
+      geom_boxplot(fill = "steelblue", alpha = 0.7, staplewidth = 0.5) +
+      scale_y_continuous(position = "right") +
+      theme_minimal() +
+      theme(axis.title.y = element_blank(), axis.text.x = element_blank())
+    
+    plot_list[[table_name]] <- p1 + p2
+  }
+  
+  combined <- wrap_plots(plot_list, ncol = ncol)
+  ggsave(filename, combined, width = 21, height = 28, dpi = 150)
+  
+  invisible(combined)
+}
+
 split_df_byDate <- function(df, date = "2022-02-01"){
   date <- as.Date(date)
   
@@ -83,7 +116,9 @@ get_split_periods <- function(all_tables, min_obs = 10, date = "2022-02-01"){ # 
 ### Дані за весь період із 2015 до 2026.
 cat("Всього таблиць:", length(all_tables)) # Пам'ятаймо, що дві таблиці - для другого періода.
 
-combined_plots(all_tables[!names(all_tables) %in% c("MULTIROOM", "PRICE_INDICIES")])
+combined_plots(all_tables[!names(all_tables) %in% c("MULTIROOM", "PRICE_INDICIES", "NET_UAH_LOANS_P")])
+
+#combined_plots_png(all_tables[!names(all_tables) %in% c("MULTIROOM", "PRICE_INDICIES", "NET_UAH_LOANS_P")])
 
 
 # =======ПОТЕНЦІЙНІ ПРОБЛЕМИ=======

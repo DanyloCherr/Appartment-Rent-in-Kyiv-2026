@@ -66,6 +66,7 @@ model_cor_matrix <- function(model_df, title_param){
 }
 
 
+
 # Таблиць із щоденними даними дуже мало, тому агрегуємо їх до щомісячних:
 # Ціни, USD, EUR, ІФС, агрегуємо 7 таблиць
 data1 <- sort_by_rows(data1)

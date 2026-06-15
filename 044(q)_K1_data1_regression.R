@@ -201,6 +201,7 @@ coeftest(lm1, vcov = vcovHAC(lm1))
 
 
 # ======== 10) ВАЛІДАЦІЯ МОДЕЛІ ========
+models_summary(final_models1q)
 suppressWarnings(
   models_validation(final_models1q, data = model1_20q_df_new, kfold_number = 5,
                     horizon = 1, init_window = 12)

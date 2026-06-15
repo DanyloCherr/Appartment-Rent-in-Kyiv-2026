@@ -77,7 +77,7 @@ residuals_plot <- function(model, type = "response"){
                pch = 19,
                cex = 1, 
                col.quad = "white", 
-               id = list(n = 3, col = "red", cex = 1),
+               id = list(n = 0, col = "red", cex = 1),
                grid = TRUE, 
                main = "",
                xlab = "Прогнозовані значення",
@@ -137,7 +137,7 @@ residuals_regressors_plot <- function(model, nr_nc, type = "response") {
                    col = "steelblue", 
                    pch = 19,
                    cex = 1, 
-                   id = list(n = 3, col = "red", cex = 1),
+                   id = list(n = 0, col = "red", cex = 1),
                    col.quad = "white",
                    grid = TRUE,
                    main = "",
@@ -261,7 +261,7 @@ av_plots <- function(model){
           pch = 19,
           cex = 0.7,
           lwd = 1.5,
-          id = list(n = 5, col = "red"))
+          id = list(n = 0, col = "red"))
 }
 
 
@@ -772,7 +772,7 @@ plot_model_df(data1, model1_75_df_date, influential_points)
 plot(model_full1_75, which = 1)
 # Якщо зв'язок між y та x лінійний LOESS крива має бути горизонтальною.
 # Лінія не зовсім пряма. Не очевидно.
-
+residuals_plot(model_full1_75)
 residuals_regressors_plot(model_full1_75, c(2, 4), type = "rstudent")
 # Тенденцій не видно (good)
 

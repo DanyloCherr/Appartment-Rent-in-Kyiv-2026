@@ -21,7 +21,7 @@ print_heads(data2, 3)
 
 predictors2 <- c("EUR", "USD", "FS_INDEX", "GPR_INDEX", 
                 "PRICE_INDICIES", "CONSUMER_CONFIDENCE", "DOL_LEVEL_AVG",
-                "NET_UAH_LOANS_P") # Спільні предиктори для всіх К
+                "NET_UAH_LOANS") # Спільні предиктори для всіх К
 
 
 

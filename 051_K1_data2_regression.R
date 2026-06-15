@@ -338,7 +338,7 @@ models_summary(list(model_LOANS, model_EUR))
 
 model1_df_temp$`Євро_Долар` <- model1_df_temp$Євро / model1_df_temp$Долар
 model1_df_temp <- model1_df_temp[!names(model1_df_temp) %in% c("ІЦЖВ")]
-model_cor_matrix(model1_df_temp, "")
+model_cor_matrix(model1_df_temp[, -c(1,2)], "")
 
 
 
@@ -359,7 +359,7 @@ vif(model_full1_2_norm_temp)
 # ІФС        ІГР        ІЦБ       ІЦЖП ІндМатСтан   РівДолар Євро_Долар 
 # 4.357019   7.103669   9.394029   4.431241   4.214926   2.422075   2.246537 
 
-condition_number(model1_df_norm_temp, 0) # 51.56485
+condition_number(model1_df_norm_temp[, -c(1,2)], 0) # 51.56485
 
 
 # ==== 3) АНАЛІЗ ЗАЛИШКІВ І ВИЯВЛЕННЯ ВИКИДІВ ====
@@ -446,6 +446,7 @@ interactions_result <- observe_best_interactions(lm1, model1_df_temp, top_n = 10
 
 
 # ======== 9) ВАЛІДАЦІЯ МОДЕЛІ ========
+models_summary(list(lm1))
 suppressWarnings(
   models_validation(list(lm1), data = model1_df_temp, kfold_number = 5,
                     horizon = 1, init_window = 30)
@@ -455,7 +456,7 @@ suppressWarnings(
 
 # ======== 10) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
 best_models1_2[[length(best_models1_2) + 1]] <- lm1
-models_summary(best_models1_2)
+
 
 
 

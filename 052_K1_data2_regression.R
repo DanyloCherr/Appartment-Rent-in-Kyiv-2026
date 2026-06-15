@@ -105,7 +105,7 @@ coeftest(model_full1_2_22, vcov = vcovHAC(model_full1_2_22))
 
 # ==== 7) ВІДБІР ЗМІННИХ ====
 all_models <- regsubsets(Ціна ~ ., data = model1_df_22, nbest = 3, nvmax = 11)
-best_models <- best_models_summary(all_models, 12)
+best_models <- best_models_summary(all_models, 10)
 
 
 # Найкраща модель із ТемпЗмінКошт є гіршою за ту модель по повній вибірці.

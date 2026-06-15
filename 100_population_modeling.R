@@ -18,10 +18,6 @@ build_P_matrix_3states <- function(p21, p31) {
   P[2, 2] <- 0
   P[2, 3] <- 1 - p21
   
-  # P[3, 1] <- p31
-  # P[3, 2] <- p32
-  # P[3, 3] <- 1 - p32 - p31
-  
   P[3, 1] <- p31
   P[3, 2] <- 1 - p31
   P[3, 3] <- 0
@@ -292,10 +288,10 @@ interpolated <- approx(
   method = "linear"
 )
 
-u_outflow_coef_monthly <- interpolated$y
+u_inflow_coef_monthly <- interpolated$y
 
 # r3_dynamic <- u_outflow_coef_monthly / max(u_outflow_coef_monthly, na.rm = TRUE) * 0.02
-r3_dynamic <- u_outflow_coef_monthly / 1e4
+r3_dynamic <- u_inflow_coef_monthly / 1e4
 summary(r3_dynamic)
 
 
@@ -466,17 +462,17 @@ KYIV_OUTFLOW <- data.frame(
 
 
 temp_df <- merge(model_df_75, KYIV_INFLOW, by = "Дата")
-temp_df <- merge(temp_df, KYIV_OUTFLOW, by = "Дата")
+#temp_df <- merge(temp_df, KYIV_OUTFLOW, by = "Дата")
 temp_df <- merge(temp_df, POPULATION_SIM, by = "Дата")
 
 model_cor_matrix(temp_df[, -1], "")
 
 
 temp_df <- merge(temp_df, KYIV_INFLOW_REAL_filt, by = "Дата")
-model_cor_matrix(temp_df[, -1], "")
-#### ІДЕЯ #### 
-#### Можна в якості еталону взяти реальну кількість прибулих, і по ній змоделювати те, що
-#### ми хотіли.
+model_cor_matrix(temp_df[, -c(1)], "")
+
+combined_plots(list(SIMULATED_INFLOW = KYIV_INFLOW, REAL_INFLOW = KYIV_INFLOW_REAL_filt))
+
 
 
 # ==== Перевірка впливу в регресійній моделі ====

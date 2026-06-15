@@ -220,20 +220,19 @@ suppressWarnings(
 
 
 # ======== 10) ВИБІР НАЙКРАЩОЇ МОДЕЛІ ========
-best_models1_2 <- list(inter_lm1)
+# best_models1_2 <- list(inter_lm1)
 len <- length(final_models2_2)
 best_models2_2 <- list(final_models2_2[[2]], final_models2_2[[len - 1]], final_models2_2[[len]])
 models_summary(best_models2_2)
-
 # Модель log(Ціна) ~ ІндМатСтан + ЧистГрнКред + ІндМатСтан:ЧистГрнКред
 # найкраща.
 
 
-# Якби ми взяли модель для однокімнатних квартир...
-model_SGLROOM <- best_models1_2[[2]]
-model_DBLROOM <- lm(formula(model_SGLROOM), data = model2_df)
-models_summary(list(model_DBLROOM)) 
-
-model_DBLROOM <- update(model_DBLROOM, . ~ . - Євро_Долар)
-models_summary(list(model_DBLROOM)) 
-# Гірше!
+# # Якби ми взяли модель для однокімнатних квартир...
+# model_SGLROOM <- best_models1_2[[2]]
+# model_DBLROOM <- lm(formula(model_SGLROOM), data = model2_df)
+# models_summary(list(model_DBLROOM)) 
+# 
+# model_DBLROOM <- update(model_DBLROOM, . ~ . - Євро_Долар)
+# models_summary(list(model_DBLROOM)) 
+# # Гірше!

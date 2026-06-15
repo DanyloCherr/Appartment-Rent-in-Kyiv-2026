@@ -333,3 +333,11 @@ lm_to_feols_summary(final_models_lm[[3]], df_long_date) # Те саме, але 
 best_models <- list(final_models_lm[[3]])
 
 assumptions_check(final_models_lm[[3]])
+
+models_summary(best_models)
+suppressWarnings(
+  models_validation(best_models, data = df_long, kfold_number = 5,
+                    horizon = 1, init_window = 30)
+)
+
+

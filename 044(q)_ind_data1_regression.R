@@ -493,6 +493,7 @@ residuals_regressors_plot(final_models_lmq[[10]], c(3, 3)) # Значна нед
 
 best_modelsq <- list(final_models_lmq[[3]]) # Найкраща модель - одна.
 
+
 lm_to_feols_summary(best_modelsq[[1]], df_long_dateq)
 models_validation(best_modelsq, df_longq, horizon = 1, kfold_number = 5,
                   init_window = 12)

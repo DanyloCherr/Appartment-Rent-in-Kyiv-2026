@@ -163,6 +163,7 @@ final_models3q$`4varq` <- lm1
 
 
 # ======== 10) ВАЛІДАЦІЯ МОДЕЛІ ========
+models_summary(final_models3q)
 suppressWarnings(
   models_validation(final_models3q, data = model3_20q_df_new, kfold_number = 5,
                     horizon = 1, init_window = 12)

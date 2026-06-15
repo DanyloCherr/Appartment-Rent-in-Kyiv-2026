@@ -10,7 +10,6 @@ model_cor_matrix(model3_df, "")
 head(model3_df)
 
 
-
 # ==== 2) ПОВНА МОДЕЛЬ ====
 model_full3_2 <- lm(Ціна ~ . - Євро - Долар, data = model3_df)
 summary(model_full3_2)
