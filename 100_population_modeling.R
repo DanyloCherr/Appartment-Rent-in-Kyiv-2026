@@ -434,6 +434,7 @@ KYIV_INFLOW <- data.frame(
 )
 
 KYIV_INFLOW <- KYIV_INFLOW[-1, ]
+rownames(KYIV_INFLOW) <- NULL
 ggplot(KYIV_INFLOW, aes(x = Дата, y = Притік)) +
   geom_point(color = "steelblue", size = 1.5) +
   labs(
@@ -489,10 +490,5 @@ summary(model_full)
 model_step <- step(model_full, direction = "both", trace = 1)
 summary(model_step)
 
-
-# НАЙКРАЩІ РЕЗУЛЬТАТИ
-
-#            r2       p31     n2_0     n3_0       value fevals gevals niter convcode  kkt1  kkt2 xtime
-# L-BFGS-B 0.01 0.1630197 39.47748 9.075359 0.002536677     27     27    NA        0 FALSE FALSE  0.28
 
 

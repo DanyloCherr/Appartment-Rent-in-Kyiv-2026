@@ -164,13 +164,6 @@ colnames(NET_UAH_LOANS) <- c("Дата", "ЧистГрнКред")
 NET_UAH_LOANS[[1]] <- floor_date(NET_UAH_LOANS[[1]], "month")
 
 
-# ---Обсяг чистих гривневих кредитів (юрособи)---
-NET_UAH_LOANS_P <- importf("Обсяг чистих гривневих кредитів (юрособи)", "%d.%m.%Y")
-NET_UAH_LOANS_P[, 2] <- as.numeric(gsub(",", ".", NET_UAH_LOANS_P[, 2]))
-colnames(NET_UAH_LOANS_P) <- c("Дата", "ЧистГрнКред")
-NET_UAH_LOANS_P[[1]] <- floor_date(NET_UAH_LOANS_P[[1]], "month")
-
-
 # ---Оцінка доходів населення---
 HH_INCOME_ESTIMATE <- importf("Оцінка доходів населення", "%d.%m.%Y")
 colnames(HH_INCOME_ESTIMATE) <- c("Дата", "ОцінкаДоходів")
