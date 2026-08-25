@@ -23,4 +23,4 @@ For each of two time periods I have built separate models for single-, double-, 
 ![Error: check for the next image images/final_models_period1.png](images/final_models_period1.png)
 
 Summary for final combined model for the 2nd period:
-![Error: check for the next image images/final_model_period2.png](images/final_models_period1.png)
+![Error: check for the next image images/final_model_period2.png](images/final_model_period2.png)
