@@ -22,5 +22,6 @@ Potential influencing factors, along with their abbreviations, observation perio
 For each of two time periods I have built separate models for single-, double-, triple-room appartments and the combined model in which "Number_of_rooms" (Кімнатність) is a categorical variable. For instance, **summary for final combined models for the 1st period** along with its validation metrics is presented in the following image.
 ![Error: check for the next image images/final_models_period1.png](images/final_models_period1.png)
 
+
 **Summary for final combined model for the 2nd period**:
 ![Error: check for the next image images/final_model_period2.png](images/final_model_period2.png)
