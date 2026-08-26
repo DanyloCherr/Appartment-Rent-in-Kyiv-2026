@@ -29,6 +29,7 @@ For each of two time periods separate models were built for single-, double-, tr
 
 In addition, separate **model with modeled variable "Inflow" ("Притік")** was built for the first time period. Its summary is shown below.
 ![Error: check for the next image images/final_model_modeledInflow.png](images/final_model_modeledInflow.png)
+Note that the last model is better than the model without a modeled variable Inflow.
 
 
 ## 📄 Full Thesis
