@@ -31,3 +31,9 @@ For each of two time periods I have built separate models for single-, double-, 
 
 In addition, separate **model with modeled variable "Inflow" ("Притік")** was build for the first time period. It's summary is shown below.
 ![Error: check for the next image images/final_model_modeledInflow.png](images/final_model_modeledInflow.png)
+---
+
+
+## 📄 Full Thesis & Documentation
+If you are interested in the theoretical background used and comprehensive statistical analysis of this research, you can read the full academic text (Ukrainian only):
+* **[Read Full Thesis (PDF)](docs/Аналіз впливу макроекономічних і соціальних факторів на прогнозування цін оренди житла в Києві.pdf)**
