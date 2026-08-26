@@ -35,4 +35,4 @@ In addition, separate **model with modeled variable "Inflow" ("Притік")** 
 
 ## 📄 Full Thesis & Documentation
 If you are interested in the theoretical background used and comprehensive statistical analysis of this research, you can read the full academic text (Ukrainian only):
-* **[Read Full Thesis (PDF)](docs/Аналіз впливу макроекономічних і соціальних факторів на прогнозування цін оренди житла в Києві.pdf)**
+* **[Read Full Thesis (PDF)](docs/thesis_kyiv_rent.pdf)**
