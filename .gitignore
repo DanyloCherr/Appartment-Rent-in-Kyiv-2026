@@ -1,6 +1,9 @@
 Data/*.csv
 
-.Rdata
+.RData
 .Rhistory
 .Rproj.user
+.Rproj
 .positai
+NULL
+
