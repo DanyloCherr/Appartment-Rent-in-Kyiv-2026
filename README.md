@@ -14,14 +14,20 @@ Potential influencing factors, along with their abbreviations, observation perio
    * Variable selection. At this stage, we may have different equally good models.
    * Including interaction terms.
    * Model validation and selection of the best model.
-3. **Time Series Extension to AR(1) (beyond the scope of academic research):** 
+
+3. **Population Inflow modeling:** using Markov process to model Kyiv population inflow for 2016 - 2022 time period and including this variable to separate model.
+
+4. **Time Series Extension to AR(1) (beyond the scope of academic research):** 
    * In process :)
 ---
 
 ## **💡Key Results & Insights**
-For each of two time periods I have built separate models for single-, double-, triple-room appartments and the combined model in which "Number_of_rooms" (Кімнатність) is a categorical variable. For instance, **summary for final combined models for the 1st period** along with its validation metrics is presented in the following image.
+For each of two time periods I have built separate models for single-, double-, triple-room appartments and the combined model in which "Number_of_rooms" ("Кімнатність") is a categorical variable. For instance, **summary for final combined models for the 1st period** along with its validation metrics is presented in the following image.
 ![Error: check for the next image images/final_models_period1.png](images/final_models_period1.png)
 
 
 **Summary for final combined model for the 2nd period**:
 ![Error: check for the next image images/final_model_period2.png](images/final_model_period2.png)
+
+In addition, separate model with modeled variable "Inflow" ("Притік") was build. It's summary is shown below.
+![Error: check for the next image images/final_model_modeledInflow.png](images/final_model_modeledInflow.png)
