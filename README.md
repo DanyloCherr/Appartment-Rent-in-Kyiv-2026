@@ -29,5 +29,5 @@ For each of two time periods I have built separate models for single-, double-, 
 **Summary for final combined model for the 2nd period**:
 ![Error: check for the next image images/final_model_period2.png](images/final_model_period2.png)
 
-In addition, separate model with modeled variable "Inflow" ("Притік") was build. It's summary is shown below.
+In addition, separate **model with modeled variable "Inflow" ("Притік")** was build for the first time period. It's summary is shown below.
 ![Error: check for the next image images/final_model_modeledInflow.png](images/final_model_modeledInflow.png)
