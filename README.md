@@ -31,7 +31,6 @@ For each of two time periods I have built separate models for single-, double-, 
 
 In addition, separate **model with modeled variable "Inflow" ("Притік")** was build for the first time period. It's summary is shown below.
 ![Error: check for the next image images/final_model_modeledInflow.png](images/final_model_modeledInflow.png)
----
 
 
 ## 📄 Full Thesis & Documentation
