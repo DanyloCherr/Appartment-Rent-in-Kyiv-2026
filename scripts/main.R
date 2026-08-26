@@ -4,7 +4,7 @@ rm(list = ls())
 
 
 get_R_name <- function(filename){
-  dir <- paste0(here(), "/", filename, ".R")
+  dir <- paste0(here(), "/scripts/", filename, ".R")
   print(dir)
   return(dir)
 }
